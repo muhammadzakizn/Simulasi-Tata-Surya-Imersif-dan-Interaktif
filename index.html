@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Tata Surya Interaktif</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #000011; 
+            color: #E0E0E0;
+            transition: background-color 0.5s ease;
+        }
+        #scene-container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            cursor: grab; /* Default cursor for scene */
+        }
+        #scene-container.grabbing {
+            cursor: grabbing;
+        }
+        #info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(42, 50, 78, 0.9); /* Slightly more opaque */
+            color: white;
+            padding: 1.25rem; /* More padding */
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+            z-index: 10;
+            max-width: 340px; 
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: background-color 0.5s ease, border-color 0.5s ease, transform 0.3s ease, opacity 0.3s ease;
+            max-height: calc(100vh - 90px); /* Adjusted for close button and potential controls overlap */
+            overflow-y: auto;
+            opacity: 0; /* Start hidden for transition */
+            transform: translateX(-100%); /* Start off-screen for transition */
+        }
+        #info-panel.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        #info-panel h2 {
+            font-size: 1.5rem; /* Larger title */
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #90CDF4; /* Tailwind blue-300 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #info-panel p {
+            font-size: 0.90rem; 
+            margin-bottom: 0.5rem; 
+            line-height: 1.5;
+        }
+        .hidden { /* Utility to truly hide, not for transition */
+            display: none !important;
+        }
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 0.75rem; /* Horizontal layout for icons */
+        }
+        .control-button {
+            background-color: rgba(59, 130, 246, 0.8); /* Tailwind blue-500 with transparency */
+            color: white;
+            width: 48px; /* Square buttons for icons */
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .control-button:hover {
+            background-color: rgba(37, 99, 235, 0.9); /* Tailwind blue-600 */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .control-button:active {
+            transform: translateY(0px);
+        }
+        .control-button svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        #close-info-button {
+            background: none;
+            border: none;
+            color: #CBD5E0; /* Tailwind gray-400 */
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        #close-info-button:hover {
+            color: white;
+        }
+        #close-info-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        body.light-mode {
+            background-color: #E0F2FE;
+            color: #1E293B;
+        }
+        body.light-mode #info-panel {
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #1E3A8A;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+        body.light-mode #info-panel h2 {
+            color: #2563EB; /* Tailwind blue-600 */
+        }
+        body.light-mode .control-button {
+            background-color: rgba(96, 165, 250, 0.8); /* Tailwind blue-400 */
+            color: #1E3A8A;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        body.light-mode .control-button:hover {
+            background-color: rgba(59, 130, 246, 0.9);
+        }
+        body.light-mode #close-info-button {
+            color: #4A5568; /* Tailwind gray-600 */
+        }
+        body.light-mode #close-info-button:hover {
+            color: #1E3A8A;
+        }
+
+
+        #webgl-error {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background-color: #ffcccc; color: #cc0000; padding: 20px;
+            border-radius: 8px; text-align: center; z-index: 1000;
+        }
+        #info-panel::-webkit-scrollbar { width: 8px; }
+        #info-panel::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        #info-panel::-webkit-scrollbar-thumb { background: rgba(135, 206, 250, 0.5); border-radius: 10px; }
+        body.light-mode #info-panel::-webkit-scrollbar-thumb { background: rgba(60, 130, 246, 0.5); }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="scene-container"></div>
+
+    <div id="info-panel"> <h2>
+            <span id="planet-name"></span>
+            <button id="close-info-button" title="Tutup Informasi">
+                </button>
+        </h2>
+        <p id="planet-description"></p>
+        <p><strong>Jarak dari Matahari:</strong> <span id="planet-distance-info"></span></p>
+        <p><strong>Periode Orbit:</strong> <span id="planet-orbit-period"></span></p>
+        <p><strong>Diameter:</strong> <span id="planet-diameter"></span></p>
+        <p><strong>Lama Hari:</strong> <span id="planet-day-length"></span></p>
+        <p><strong>Suhu Permukaan:</strong> <span id="planet-surface-temp"></span></p>
+        <p><strong>Gravitasi:</strong> <span id="planet-gravity"></span></p>
+        <p><strong>Bulan:</strong> <span id="planet-moons"></span></p>
+        <p><strong>Atmosfer Utama:</strong> <span id="planet-atmosphere"></span></p>
+        <p><strong>Penemuan:</strong> <span id="planet-discovery"></span></p>
+        <p class="mt-2"><strong>Fakta Unik:</strong> <span id="planet-fact" class="font-semibold"></span></p>
+    </div>
+
+    <div id="controls">
+        <button id="pause-play-toggle" class="control-button" title="Pause/Mulai Animasi">
+            </button>
+        <button id="sound-toggle" class="control-button" title="Suara Nyala/Mati">
+            </button>
+        <button id="theme-toggle" class="control-button" title="Ganti Mode Tema">
+            </button>
+    </div>
+
+    <div id="webgl-error" class="hidden">
+        Maaf, browser Anda sepertinya tidak mendukung WebGL, yang diperlukan untuk simulasi ini.
+        Coba perbarui browser Anda atau gunakan browser lain seperti Chrome atau Firefox.
+    </div>
+
+    <script>
+        if (!window.WebGLRenderingContext) {
+            document.getElementById('webgl-error').classList.remove('hidden');
+            document.getElementById('controls').classList.add('hidden');
+        } else {
+            let scene, camera, renderer, raycaster, mouse;
+            let ambientLight, sunLight;
+            const planets = [];
+            const orbits = [];
+            let starField;
+            let soundEnabled = false;
+            let isNightMode = true;
+            let ambientSynth;
+            
+            let clickedObject = null; // Objek yang sedang diklik dan panelnya tampil
+            let isPausedByPlanetInteraction = false; // Pause karena interaksi klik planet
+            let isGloballyPaused = false; // Pause karena tombol global pause/play
+
+            // SVG Icons
+            const icons = {
+                soundOn: `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`,
+                soundOff: `<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L7 9H3v6h4l5 5V4z"></path></svg>`,
+                sun: `<svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2.28c-.6.34-1 .98-1 1.72s.4 1.38 1 1.72V17h-2v-2.28c.6-.34 1-.98 1-1.72s-.4-1.38-1-1.72V7zm4.44 2.06l1.41-1.41 1.06 1.06-1.41 1.41C16.99 10.51 17 11.25 17 12s-.01 1.49-.56 2.94l1.41 1.41-1.06 1.06-1.41-1.41C15.01 15.49 15 14.75 15 14c0-1.11.36-2.14 1.44-2.94zM4.5 10.06L5.56 9.01l1.41 1.41C6.36 11.86 6 12.89 6 14c0 .75.01 1.49.56 2.94L5.56 17.99l-1.41-1.41C3.01 15.49 3 14.75 3 14s.01-1.49.56-2.94z"></path></svg>`,
+                moon: `<svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c0-3.03 2.47-5.5 5.5-5.5.17 0 .33.01.5.02-2.78.89-4.98 3.25-5.44 6.12-.02.16-.04.33-.06.5C6.5 14.47 6.5 12 6.5 12z"></path></svg>`,
+                play: `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`,
+                pause: `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`,
+                close: `<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>`
+            };
+
+            const planetData = { // Data tetap sama seperti sebelumnya
+                sun: { name: "Matahari", color: 0xFFFF00, size: 12, description: "Bintang di pusat Tata Surya kita...", fact: "Matahari menyumbang sekitar 99,86%...", orbitalPeriod: "N/A", diameter: "1.392.700 km", distanceFromSunText: "N/A", dayLength: "Sekitar 25-35 hari Bumi...", surfaceTemperature: "Permukaan: ~5.500°C...", gravity: "~274 m/s² (28g)", moonsText: "N/A (memiliki planet)", atmosphere: "Hidrogen (~74%), Helium (~24%)", discovery: "Dikenal sejak zaman kuno"},
+                mercury: { name: "Merkurius", color: 0x9E9E9E, size: 0.8, distance: 25, speed: 0.018, description: "Planet terkecil...", fact: "Satu hari matahari di Merkurius...", orbitalPeriod: "88 hari Bumi", diameter: "4.879 km", distanceFromSunText: "57,9 juta km", dayLength: "58,6 hari Bumi", surfaceTemperature: "-173°C hingga 427°C", gravity: "3,7 m/s² (0,38g)", moonsText: "Tidak ada", atmosphere: "Sangat tipis...", discovery: "Dikenal sejak zaman kuno"},
+                venus: { name: "Venus", color: 0xE0C395, size: 1.3, distance: 35, speed: 0.013, description: "Planet terpanas...", fact: "Venus berotasi berlawanan arah...", orbitalPeriod: "225 hari Bumi", diameter: "12.104 km", distanceFromSunText: "108,2 juta km", dayLength: "243 hari Bumi (retrograde)", surfaceTemperature: "Rata-rata 464°C", gravity: "8,87 m/s² (0,90g)", moonsText: "Tidak ada", atmosphere: "Karbon Dioksida (96,5%)...", discovery: "Dikenal sejak zaman kuno"},
+                earth: { name: "Bumi", color: 0x6699FF, size: 1.4, distance: 48, speed: 0.01, description: "Satu-satunya planet...", fact: "Bumi memiliki medan magnet...", orbitalPeriod: "365,25 hari Bumi", diameter: "12.742 km", distanceFromSunText: "149,6 juta km", dayLength: "23 jam 56 menit", surfaceTemperature: "Rata-rata 15°C", gravity: "9,807 m/s² (1g)", moonsText: "1 (Bulan)", atmosphere: "Nitrogen (78%), Oksigen (21%)...", discovery: "Dikenal sejak zaman kuno", moon: { name: "Bulan", color: 0xCCCCCC, size: 0.35, distance: 3, speed: 0.1, description: "Satelit alami Bumi...", distanceFromSunText: "Mengorbit Bumi...", orbitalPeriod: "27,3 hari Bumi", diameter: "3.474 km", dayLength: "27,3 hari Bumi", surfaceTemperature: "-173°C hingga 127°C", gravity: "1,62 m/s² (0,165g)", moonsText: "N/A", atmosphere: "Sangat tipis...", discovery: "Dikenal sejak zaman kuno", fact: "Bulan adalah satu-satunya..."}},
+                mars: { name: "Mars", color: 0xFF7F50, size: 1, distance: 65, speed: 0.008, description: "Dikenal sebagai Planet Merah...", fact: "Mars memiliki gunung berapi tertinggi...", orbitalPeriod: "687 hari Bumi", diameter: "6.779 km", distanceFromSunText: "227,9 juta km", dayLength: "24 jam 37 menit", surfaceTemperature: "-143°C hingga 35°C", gravity: "3,721 m/s² (0,38g)", moonsText: "2 (Phobos, Deimos)", atmosphere: "Karbon Dioksida (95%)...", discovery: "Dikenal sejak zaman kuno"},
+                jupiter: { name: "Jupiter", color: 0xFFD700, size: 5, distance: 100, speed: 0.004, description: "Planet terbesar...", fact: "Jupiter memiliki medan magnet terkuat...", orbitalPeriod: "11,9 tahun Bumi", diameter: "139.820 km", distanceFromSunText: "778,5 juta km", dayLength: "9 jam 56 menit", surfaceTemperature: "Awan atas: -145°C", gravity: "24,79 m/s² (2,53g)", moonsText: "95 (Io, Europa...)", atmosphere: "Hidrogen (~89%), Helium (~10%)", discovery: "Dikenal sejak zaman kuno..."},
+                saturn: { name: "Saturnus", color: 0xF0E68C, size: 4.2, distance: 140, speed: 0.003, description: "Dikenal karena sistem cincinnya...", fact: "Saturnus memiliki kepadatan...", orbitalPeriod: "29,5 tahun Bumi", diameter: "116.460 km", distanceFromSunText: "1,43 miliar km", dayLength: "10 jam 33 menit", surfaceTemperature: "Awan atas: -178°C", gravity: "10,44 m/s² (1,065g)", moonsText: "146 (Titan...)", atmosphere: "Hidrogen (~96%), Helium (~3%)", discovery: "Dikenal sejak zaman kuno...", rings: { innerRadius: 5, outerRadius: 9, color: 0xAAAAAA, segments: 64 } },
+                uranus: { name: "Uranus", color: 0xAFEEEE, size: 3, distance: 180, speed: 0.002, description: "Raksasa es...", fact: "Uranus berotasi pada sisinya...", orbitalPeriod: "84 tahun Bumi", diameter: "50.724 km", distanceFromSunText: "2,87 miliar km", dayLength: "17 jam 14 menit (retrograde)", surfaceTemperature: "Awan atas: -214°C", gravity: "8,69 m/s² (0,886g)", moonsText: "27 (Titania...)", atmosphere: "Hidrogen (~83%), Helium (~15%)...", discovery: "William Herschel, 1781"},
+                neptune: { name: "Neptunus", color: 0x4682B4, size: 2.8, distance: 220, speed: 0.001, description: "Raksasa es terjauh...", fact: "Neptunus ditemukan melalui prediksi...", orbitalPeriod: "164,8 tahun Bumi", diameter: "49.244 km", distanceFromSunText: "4,5 miliar km", dayLength: "16 jam 6 menit", surfaceTemperature: "Awan atas: -201°C", gravity: "11,15 m/s² (1,14g)", moonsText: "14 (Triton...)", atmosphere: "Hidrogen (~80%), Helium (~19%)...", discovery: "Johann Galle..."}
+            };
+
+            function init() {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+                camera.position.set(0, 70, 150);
+                camera.lookAt(scene.position);
+
+                const sceneContainer = document.getElementById('scene-container');
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                sceneContainer.appendChild(renderer.domElement);
+
+                ambientLight = new THREE.AmbientLight(0x606060, isNightMode ? 1.5 : 3.0); // Slightly brighter ambient
+                scene.add(ambientLight);
+                sunLight = new THREE.PointLight(0xFFFFFF, 1.8, 1200); // Slightly stronger sun
+                scene.add(sunLight);
+
+                raycaster = new THREE.Raycaster();
+                mouse = new THREE.Vector2();
+
+                createStars();
+                createSolarSystem();
+
+                // Setup Icons
+                document.getElementById('close-info-button').innerHTML = icons.close;
+                document.getElementById('pause-play-toggle').innerHTML = isGloballyPaused ? icons.play : icons.pause;
+                document.getElementById('sound-toggle').innerHTML = soundEnabled ? icons.soundOn : icons.soundOff;
+                document.getElementById('theme-toggle').innerHTML = isNightMode ? icons.sun : icons.moon; // Sun icon for night mode means "switch to day"
+
+                // Event Listeners
+                window.addEventListener('resize', onWindowResize, false);
+                sceneContainer.addEventListener('mousemove', onSceneMouseMove, false); // For cursor
+                sceneContainer.addEventListener('click', onSceneClick, false); // For interaction
+                document.getElementById('close-info-button').addEventListener('click', closeInfoPanel);
+                document.getElementById('pause-play-toggle').addEventListener('click', toggleGlobalPause);
+                document.getElementById('sound-toggle').addEventListener('click', toggleSound);
+                document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+                
+                updateThemeVisuals(); // Initial theme setup
+                animate();
+            }
+
+            function createStars() { /* Sama seperti sebelumnya */ 
+                const starGeometry = new THREE.BufferGeometry();
+                const starMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.7, transparent: true, opacity: 0.8, sizeAttenuation: true });
+                const starVertices = [];
+                for (let i = 0; i < 15000; i++) {
+                    const x = (Math.random() - 0.5) * 1500; const y = (Math.random() - 0.5) * 1500; const z = (Math.random() - 0.5) * 1500;
+                    if (Math.sqrt(x*x + y*y + z*z) > 100) starVertices.push(x, y, z);
+                }
+                starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+                starField = new THREE.Points(starGeometry, starMaterial);
+                scene.add(starField);
+            }
+
+            function createSolarSystem() { /* Sama seperti sebelumnya, pastikan userData di set dengan benar */
+                for (const key in planetData) {
+                    const data = planetData[key];
+                    const geometry = new THREE.SphereGeometry(data.size, 64, 64);
+                    let material;
+                    if (key === 'sun') {
+                        material = new THREE.MeshBasicMaterial({ color: data.color, map: createSunTexture() });
+                        sunLight.position.set(0,0,0);
+                    } else {
+                        material = new THREE.MeshPhongMaterial({ color: data.color, shininess: 15, specular: 0x222222 }); // Slightly more shine
+                    }
+                    const planetMesh = new THREE.Mesh(geometry, material);
+                    planetMesh.name = data.name;
+                    planetMesh.userData = data; // Crucial for click interaction
+
+                    if (key !== 'sun') {
+                        const planetOrbitGroup = new THREE.Object3D();
+                        planetMesh.position.x = data.distance;
+                        planetOrbitGroup.add(planetMesh);
+                        scene.add(planetOrbitGroup);
+                        planets.push({ mesh: planetMesh, group: planetOrbitGroup, speed: data.speed, distance: data.distance });
+
+                        const orbitGeometry = new THREE.RingGeometry(data.distance - 0.1, data.distance + 0.1, 128);
+                        const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
+                        const orbitMesh = new THREE.Mesh(orbitGeometry, orbitMaterial);
+                        orbitMesh.rotation.x = Math.PI / 2;
+                        scene.add(orbitMesh);
+                        orbits.push(orbitMesh);
+
+                        if (data.rings) {
+                            const ringGeo = new THREE.RingGeometry(data.rings.innerRadius, data.rings.outerRadius, data.rings.segments);
+                            const ringMat = new THREE.MeshBasicMaterial({ color: data.rings.color, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+                            const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                            ringMesh.rotation.x = Math.PI / 2.2; planetMesh.add(ringMesh);
+                        }
+                        if (data.moon) {
+                            const moonData = data.moon;
+                            const moonGeometry = new THREE.SphereGeometry(moonData.size, 32, 32);
+                            const moonMaterial = new THREE.MeshPhongMaterial({ color: moonData.color, shininess: 5 });
+                            const moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
+                            moonMesh.name = moonData.name; moonMesh.userData = moonData;
+                            const moonOrbitGroup = new THREE.Object3D();
+                            moonMesh.position.x = moonData.distance; moonOrbitGroup.add(moonMesh);
+                            planetMesh.add(moonOrbitGroup);
+                            planets.push({ mesh: moonMesh, group: moonOrbitGroup, speed: moonData.speed, distance: moonData.distance, isMoon: true, parentPlanet: planetMesh });
+                        }
+                    } else {
+                        scene.add(planetMesh);
+                        planets.push({ mesh: planetMesh, group: planetMesh, speed: 0, distance: 0 });
+                    }
+                }
+            }
+            
+            function createSunTexture() { /* Sama seperti sebelumnya */
+                const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
+                const context = canvas.getContext('2d');
+                const gradient = context.createRadialGradient(128, 128, 20, 128, 128, 128);
+                gradient.addColorStop(0, 'rgba(255, 255, 220, 1)'); gradient.addColorStop(0.4, 'rgba(255, 200, 0, 1)');
+                gradient.addColorStop(0.8, 'rgba(255, 160, 0, 0.8)'); gradient.addColorStop(1, 'rgba(255, 100, 0, 0.5)');
+                context.fillStyle = gradient; context.fillRect(0, 0, 256, 256);
+                for (let i = 0; i < 200; i++) {
+                    const x = Math.random() * 256; const y = Math.random() * 256;
+                    const r = Math.random() * 3 + 1; const alpha = Math.random() * 0.5 + 0.3;
+                    context.beginPath(); context.arc(x, y, r, 0, Math.PI * 2);
+                    context.fillStyle = `rgba(255, 230, 180, ${alpha})`; context.fill();
+                }
+                return new THREE.CanvasTexture(canvas);
+            }
+
+            function onWindowResize() { /* Sama seperti sebelumnya */
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            function onSceneMouseMove(event) {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                // Update cursor based on hover
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(planets.map(p => p.mesh), true); // Check all descendants
+                if (intersects.length > 0) {
+                    document.getElementById('scene-container').style.cursor = 'pointer';
+                } else {
+                    document.getElementById('scene-container').style.cursor = 'grab';
+                }
+            }
+
+            function onSceneClick(event) {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(planets.map(p => p.mesh), true); // Check all descendants
+
+                if (intersects.length > 0) {
+                    const newClickedObject = intersects[0].object;
+                    if (clickedObject !== newClickedObject) {
+                        clickedObject = newClickedObject;
+                        updateInfoPanel(clickedObject.userData);
+                        isPausedByPlanetInteraction = true;
+                    } else { // Clicking the same planet again, toggle panel
+                        if (document.getElementById('info-panel').classList.contains('visible')) {
+                            closeInfoPanel();
+                        } else {
+                            updateInfoPanel(clickedObject.userData); // Re-show if it was hidden by other means
+                            isPausedByPlanetInteraction = true;
+                        }
+                    }
+                } else { // Clicked on empty space
+                    if (clickedObject) { // If a panel was open, close it
+                        closeInfoPanel();
+                    }
+                }
+            }
+            
+            function closeInfoPanel() {
+                document.getElementById('info-panel').classList.remove('visible');
+                isPausedByPlanetInteraction = false;
+                // clickedObject = null; // Keep clickedObject to allow re-opening by clicking same planet
+            }
+
+            function toggleGlobalPause() {
+                isGloballyPaused = !isGloballyPaused;
+                document.getElementById('pause-play-toggle').innerHTML = isGloballyPaused ? icons.play : icons.pause;
+                document.getElementById('pause-play-toggle').title = isGloballyPaused ? "Mulai Animasi" : "Pause Animasi";
+            }
+
+            function toggleSound() {
+                if (!ambientSynth) {
+                     try {
+                        Tone.start();
+                        ambientSynth = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 8, decay: 0.2, sustain: 0.8, release: 8 }}).toDestination();
+                        ambientSynth.volume.value = -35;
+                    } catch (e) { console.error("Tone.js error:", e); return; }
+                }
+                soundEnabled = !soundEnabled;
+                if (soundEnabled) ambientSynth.triggerAttack(); else ambientSynth.triggerRelease();
+                document.getElementById('sound-toggle').innerHTML = soundEnabled ? icons.soundOn : icons.soundOff;
+                document.getElementById('sound-toggle').title = soundEnabled ? "Matikan Suara" : "Nyalakan Suara";
+            }
+
+            function toggleTheme() {
+                isNightMode = !isNightMode;
+                updateThemeVisuals();
+            }
+
+            function updateThemeVisuals() {
+                document.body.classList.toggle('light-mode', !isNightMode);
+                document.getElementById('theme-toggle').innerHTML = isNightMode ? icons.sun : icons.moon;
+                document.getElementById('theme-toggle').title = isNightMode ? "Mode Siang" : "Mode Malam";
+
+                if (isNightMode) {
+                    ambientLight.intensity = 1.5; sunLight.intensity = 1.5;
+                    if (starField) starField.material.opacity = 0.8;
+                    orbits.forEach(o => o.material.opacity = 0.3);
+                } else {
+                    ambientLight.intensity = 3.0; sunLight.intensity = 2.0;
+                    if (starField) starField.material.opacity = 0.3;
+                    orbits.forEach(o => o.material.opacity = 0.15);
+                }
+            }
+            
+            function updateInfoPanel(data) {
+                const panel = document.getElementById('info-panel');
+                if (data) {
+                    document.getElementById('planet-name').textContent = data.name || "N/A";
+                    document.getElementById('planet-description').textContent = data.description || "Informasi tidak tersedia.";
+                    document.getElementById('planet-distance-info').textContent = data.distanceFromSunText || "N/A";
+                    document.getElementById('planet-orbit-period').textContent = data.orbitalPeriod || "N/A";
+                    document.getElementById('planet-diameter').textContent = data.diameter || "N/A";
+                    document.getElementById('planet-day-length').textContent = data.dayLength || "N/A";
+                    document.getElementById('planet-surface-temp').textContent = data.surfaceTemperature || "N/A";
+                    document.getElementById('planet-gravity').textContent = data.gravity || "N/A";
+                    document.getElementById('planet-moons').textContent = data.moonsText || "N/A";
+                    document.getElementById('planet-atmosphere').textContent = data.atmosphere || "N/A";
+                    document.getElementById('planet-discovery').textContent = data.discovery || "N/A";
+                    document.getElementById('planet-fact').textContent = data.fact || "Tidak ada fakta unik.";
+                    panel.classList.add('visible');
+                } else { // Should not happen if logic is correct, but as a fallback
+                    panel.classList.remove('visible');
+                }
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                const time = Date.now() * 0.0001;
+
+                // Animasi planet-planet dan rotasi aksialnya
+                if (!isPausedByPlanetInteraction && !isGloballyPaused) {
+                    planets.forEach(p => {
+                        if (p.group && p.speed > 0) { 
+                            if (p.isMoon && p.parentPlanet) p.group.rotation.y += p.speed * 5; 
+                            else p.group.rotation.y += p.speed / 2; 
+                        }
+                        p.mesh.rotation.y += 0.005; 
+                    });
+                }
+
+                // Efek kelap-kelip bintang (selalu berjalan)
+                if (starField) {
+                    starField.material.opacity = isNightMode ? (0.6 + Math.sin(Date.now() * 0.0005) * 0.2) : (0.2 + Math.sin(Date.now() * 0.0005) * 0.1) ;
+                }
+                
+                // Kamera berputar perlahan (selalu berjalan)
+                camera.position.x = Math.sin(time * 0.07) * 160; // Slightly slower and wider camera orbit
+                camera.position.z = Math.cos(time * 0.07) * 160;
+                camera.position.y = 70 + Math.sin(time * 0.03) * 25; 
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        }
+    </script>
+</body>
+</html>
