@@ -13,5 +13,7 @@ Simulasi Tata Surya, merupakan project web-based dan dibentuk nan imersif dan in
 - Fakta-fakta unik disertakan didalam deskripsi planet-planet,
 - Latar belakang yang memukau, dengan efek bintang berkelap-kelip mencipatkan pengalaman menjelajahi tata surya lebih seru.
 
+Disarankan untuk membukanya di layar non-mobile seperti Laptop, dan lainnya.
+
 Demikian project ini, dengan catatan. Project ini telah di sempurnakan dan generalisasikan dibantu dengan AI. <br>
 Anda dapat mengaksesnya langsung melalui tautan, https://muhammadzakizn.github.io/Simulasi-Tata-Surya-Imersif-dan-Interaktif/
