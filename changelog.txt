@@ -1,0 +1,90 @@
+# Detail Catatan Perubahan & Alur Pengembangan Simulasi Tata Surya
+
+Dokumen ini mencatat perkembangan fitur utama dan perbaikan bug yang telah diimplementasikan dalam proyek Simulasi Tata Surya Interaktif, diurutkan berdasarkan versi/iterasi pengembangan.
+
+---
+
+### **V1.0: Dasar Simulasi (Iterasi Awal)**
+
+* **Fitur Utama:**
+    * Visualisasi dasar planet-planet Tata Surya (Merkurius hingga Neptunus) dan Matahari.
+    * Implementasi pewarnaan, ukuran relatif, dan jarak orbit dasar untuk setiap objek.
+    * Gerakan rotasi planet pada porosnya dan revolusi (orbit) mengelilingi Matahari.
+    * Kamera perspektif dengan pandangan awal ke seluruh sistem.
+    * Pencahayaan ambient dan titik (dari Matahari) untuk menerangi scene.
+    * Latar belakang bintang statis sederhana.
+* **Interaksi:**
+    * Panel informasi awal muncul saat planet diklik, menampilkan data dasar (nama, deskripsi singkat).
+* **Kontrol Pengguna:**
+    * Tombol untuk menjeda/melanjutkan animasi orbit dan rotasi.
+    * Tombol untuk mengaktifkan/menonaktifkan suara ambient angkasa (menggunakan Tone.js).
+    * Tombol untuk mengganti tema visual antara mode terang (siang) dan gelap (malam).
+
+---
+
+### **V2.0: Peningkatan Interaksi & Visual (Iterasi Menengah)**
+
+* **Peningkatan Visual Objek Langit:**
+    * Tekstur Matahari dibuat lebih dinamis menyerupai bola api dengan efek permukaan yang bergejolak.
+    * Penambahan cincin untuk Saturnus.
+    * Penambahan Bulan sebagai satelit Bumi, dengan orbit dan rotasinya sendiri.
+* **Fitur Garis Orbit & Poros:**
+    * Visualisasi garis orbit yang jelas untuk setiap planet.
+    * Implementasi visualisasi poros rotasi (berupa silinder tipis) pada setiap planet dan Bulan, dengan kemiringan aksial yang sesuai.
+    * Penambahan tombol kontrol terpisah untuk menampilkan/menyembunyikan garis orbit dan poros rotasi.
+* **Peningkatan Interaksi Pengguna:**
+    * **Efek Hover:**
+        * Planet (dan bulannya) berhenti berotasi/mengorbit saat kursor mouse diarahkan ke atasnya (kecuali jika panel info sedang terbuka untuk objek tersebut atau simulasi dijeda global).
+        * Efek cahaya lembut (hover glow) berwarna kebiruan muncul di belakang planet/bulan saat di-hover (tidak berlaku untuk Matahari).
+        * Kamera melakukan zoom-in optik (FOV menyempit sekitar 10%) saat hover pada planet/bulan (tidak untuk Matahari).
+    * **Efek Klik:**
+        * Efek cahaya "shiny" (click glow) yang lebih intens muncul di belakang planet/Matahari saat panel informasinya terbuka. Untuk Matahari, glow ini berwarna "berapi-api".
+        * Kamera secara otomatis melakukan zoom ke objek yang diklik.
+    * **Tooltip Nama:** Tooltip muncul menampilkan nama objek saat kursor diarahkan ke atasnya.
+* **Panel Informasi yang Disempurnakan:**
+    * Perbaikan masalah teks yang terpotong.
+    * Penambahan informasi yang lebih detail dan rinci untuk setiap objek langit (deskripsi, jarak, periode orbit, diameter, suhu, gravitasi, bulan, atmosfer, penemuan, ciri khas).
+    * Styling khusus dengan box untuk bagian "Fakta Unik".
+* **Kontrol Kamera:**
+    * Integrasi `OrbitControls` dari Three.js untuk memungkinkan pengguna melakukan zoom in/out dengan roda mouse, menggeser (pan) dengan tombol kanan mouse, dan memutar (orbit) kamera dengan tombol kiri mouse.
+    * Animasi kamera otomatis awal (orbit perlahan) akan berhenti setelah pengguna mulai berinteraksi dengan `OrbitControls`.
+    * Transisi zoom-out yang lebih mulus saat panel informasi ditutup, mengembalikan kamera ke pandangan awal yang lebih luas.
+
+---
+
+### **V3.0: Desain Ulang Antarmuka & Kontrol Lanjutan (Iterasi Terbaru)**
+
+* **Desain Ulang Menu Utama:**
+    * Semua tombol kontrol disatukan dalam satu tombol "Menu" utama berbentuk kapsul yang terletak di tengah bawah layar.
+    * Ikon tombol menu utama berupa "grid" (kotak-kotak) dan berubah menjadi ikon "close" (X) saat menu aktif.
+    * Animasi dinamis pada tombol menu utama saat diklik.
+* **Tombol Fitur Pop-Out:**
+    * Tombol-tombol fitur (Toggle Orbit, Toggle Poros, Pengaturan Latar, Zoom, Kecepatan, Pause/Play, Suara, Tema) muncul secara animasi dengan efek staggered di samping kiri dan kanan tombol menu utama.
+    * Semua tombol fitur berbentuk kapsul dengan ikon dan teks judul yang jelas.
+    * Jarak vertikal antara tombol menu utama dan barisan tombol fitur disesuaikan agar lebih rapat.
+* **Fungsionalitas Tombol Zoom yang Disempurnakan:**
+    * Tombol "Zoom" di menu fitur berfungsi sebagai toggle untuk menampilkan/menyembunyikan tombol "Zoom In" dan "Zoom Out" yang lebih kecil, yang muncul di dekat tombol "Zoom".
+    * Tombol "Zoom In" dan "Zoom Out" aktif mengontrol perbesaran kamera menggunakan `controls.dollyIn()` dan `controls.dollyOut()`.
+* **Fitur Kontrol Kecepatan Orbit:**
+    * Tombol fitur "Kecepatan" ditambahkan ke menu.
+    * Saat diklik, menampilkan tombol "Percepat" dan "Perlambat" orbit yang fungsional, menyesuaikan faktor kecepatan global.
+* **Kontrol Latar Belakang Lanjutan:**
+    * Tombol "Pengaturan Latar" di menu fitur.
+    * Panel pop-up untuk menampilkan/menyembunyikan Lubang Hitam, Galaksi Jauh, dan Bintang Latar.
+    * Kontrol untuk menambah/mengurangi kepadatan bintang dan galaksi jauh.
+* **Penyempurnaan Visual Latar Belakang:**
+    * Visual galaksi jauh disempurnakan agar lebih menyebar dan tidak menggumpal, dengan variasi warna yang lebih halus.
+    * Representasi visual lubang hitam menggunakan `TorusGeometry` untuk cakram akresi yang lebih realistis dan detail, dengan bagian tengah yang gelap pekat.
+* **Konsistensi UI dan Perbaikan Bug:**
+    * Penggunaan font Roboto sebagai font utama.
+    * Styling glassmorphism diterapkan secara konsisten pada tombol dan panel.
+    * Perbaikan berkelanjutan pada bug zoom, terutama konflik antara animasi otomatis dan interaksi pengguna.
+    * Memastikan semua tombol fitur memiliki struktur HTML yang konsisten untuk `icon-container` dan `text-container` guna mencegah perubahan ukuran yang tidak diinginkan.
+
+---
+
+## Catatan Tambahan:
+
+* Proyek ini terus dikembangkan dengan bantuan AI untuk generalisasi dan penyempurnaan fitur.
+* Disarankan untuk diakses pada layar non-mobile (Laptop, PC) untuk pengalaman terbaik.
+
