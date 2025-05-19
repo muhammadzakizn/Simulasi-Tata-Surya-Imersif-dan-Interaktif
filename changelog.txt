@@ -2,8 +2,6 @@
 
 Dokumen ini mencatat perkembangan fitur utama dan perbaikan bug yang telah diimplementasikan dalam proyek Simulasi Tata Surya Interaktif, diurutkan berdasarkan versi/iterasi pengembangan.
 
----
-
 ### **V1.0: Dasar Simulasi (Iterasi Awal)**
 
 * **Fitur Utama:**
@@ -80,6 +78,37 @@ Dokumen ini mencatat perkembangan fitur utama dan perbaikan bug yang telah diimp
     * Styling glassmorphism diterapkan secara konsisten pada tombol dan panel.
     * Perbaikan berkelanjutan pada bug zoom, terutama konflik antara animasi otomatis dan interaksi pengguna.
     * Memastikan semua tombol fitur memiliki struktur HTML yang konsisten untuk `icon-container` dan `text-container` guna mencegah perubahan ukuran yang tidak diinginkan.
+
+---
+
+### **V4.0: Optimalisasi Audio, Inisialisasi, dan Penyempurnaan Fitur**
+
+* **Peningkatan Suara Ambien Angkasa:**
+    * Implementasi suara latar angkasa yang lebih imersif menggunakan `NoiseSynth` dengan tipe 'brown' dari Tone.js.
+    * (Jika berhasil diimplementasikan kembali) Penambahan `AutoFilter` dengan LFO (Low-Frequency Oscillator) yang lambat untuk memberikan efek "sapuan" atau "nafas" pada suara.
+    * (Jika berhasil diimplementasikan kembali) Penggunaan `Reverb` untuk menambah kesan ruang yang luas pada suara ambien.
+    * Node `Volume` terpisah untuk mengontrol level keseluruhan suara ambien ini.
+* **Perbaikan Inisialisasi Audio (Autoplay & Stabilitas):**
+    * `Tone.start()` (untuk mengaktifkan konteks audio browser) kini dipanggil hanya setelah pengguna melakukan interaksi pertama (klik di mana saja pada halaman) untuk mematuhi kebijakan autoplay browser modern dan mencegah error "The AudioContext was not allowed to start".
+    * Semua *synthesizer* (suara klik dan ambien) diinisialisasi hanya setelah `Tone.start()` berhasil dijalankan dan `Tone.loaded()` telah dikonfirmasi.
+    * Suara ambien akan berusaha dimulai secara otomatis setelah inisialisasi berhasil dan jika volume tidak di-*mute*.
+    * Fungsi `applyCurrentVolumeToSynth` disempurnakan untuk hanya mengatur volume dan status *mute* pada *synthesizer* yang sudah ada, dan tidak mencoba memulainya berulang kali untuk mencegah error.
+* **Sinkronisasi Animasi Intro Menu:**
+    * Animasi intro untuk menu utama (munculnya tombol-tombol dari bawah layar) sekarang diaktifkan dari JavaScript setelah konteks audio berhasil dimulai, memastikan pengalaman pengguna yang lebih mulus.
+* **Penyempurnaan Fitur Visual dan Interaksi:**
+    * **Garis Sumbu (Poros Rotasi):**
+        * Panjang garis sumbu disesuaikan menjadi lebih proporsional (sekitar 1.6 kali radius objek) untuk semua objek langit.
+        * Opasitas garis sumbu ditingkatkan menjadi `0.6` agar lebih mudah terlihat.
+        * Memastikan data `axialTilt` tersedia dan digunakan untuk semua objek, termasuk Bulan.
+    * **Garis Orbit:**
+        * Tombol toggle untuk visibilitas garis orbit ditambahkan ke dalam pop-up "Kecepatan Orbit & Animasi".
+        * Opasitas default garis orbit ditingkatkan menjadi `0.5`.
+    * **Tooltip Nama Planet:** Logika penampilan tooltip saat hover disempurnakan untuk konsistensi.
+    * **Tombol Fullscreen:** Fungsi terkait (`updateFullscreenButtonIcon`, `toggleFullscreenMode`, `handleFullscreenChange`) dipastikan terdefinisi dengan benar.
+* **Perbaikan Stabilitas dan Debugging:**
+    * Penambahan `console.log` yang lebih detail untuk membantu diagnosis masalah terkait audio dan urutan inisialisasi.
+    * Penyesuaian CSS untuk memastikan posisi tombol menu utama tetap di tengah bawah layar secara default sebelum animasi intro dijalankan.
+    * Perbaikan berkelanjutan pada bug minor dan peningkatan stabilitas umum.
 
 ---
 
