@@ -23,147 +23,759 @@
             top: 0;
             left: 0;
             z-index: 1;
-            cursor: grab; /* Default cursor for scene */
+            cursor: grab;
         }
         #scene-container.grabbing {
             cursor: grabbing;
         }
+
+        /* Panel Informasi */
         #info-panel {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            background-color: rgba(42, 50, 78, 0.9); /* Slightly more opaque */
-            color: white;
-            padding: 1.25rem; /* More padding */
+            top: 1rem; 
+            left: 1rem;
+            padding: 1rem; 
             border-radius: 0.75rem;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-            z-index: 10;
-            max-width: 340px; 
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            z-index: 10; 
+            width: calc(100% - 2rem); 
+            max-width: 320px; 
+            max-height: calc(100vh - 120px); 
+            overflow-y: auto; 
+            opacity: 0;
+            transform: translateX(-100%);
+            
+            background-color: rgba(30, 30, 35, 0.75); 
+            backdrop-filter: blur(14px) saturate(170%);
+            -webkit-backdrop-filter: blur(14px) saturate(170%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+            
             transition: background-color 0.5s ease, border-color 0.5s ease, transform 0.3s ease, opacity 0.3s ease;
-            max-height: calc(100vh - 90px); /* Adjusted for close button and potential controls overlap */
-            overflow-y: auto;
-            opacity: 0; /* Start hidden for transition */
-            transform: translateX(-100%); /* Start off-screen for transition */
         }
         #info-panel.visible {
             opacity: 1;
             transform: translateX(0);
         }
         #info-panel h2 {
-            font-size: 1.5rem; /* Larger title */
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: #90CDF4; /* Tailwind blue-300 */
+            font-size: 1.25rem; 
+            font-weight: bold; margin-bottom: 0.75rem; color: #90CDF4;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        #info-panel p, 
+        #planet-fact { 
+            font-size: 0.875rem; 
+            margin-bottom: 0.4rem; 
+            line-height: 1.6; 
+            word-wrap: break-word; 
+            overflow-wrap: break-word; 
+            white-space: normal !important; 
+            display: block; 
+            overflow: visible !important; 
+            text-overflow: clip !important; 
+            height: auto !important; 
+            max-height: none !important; 
+        }
+        .hidden { display: none !important; }
+
+        /* Kotak Fakta Unik */
+        .unique-fact-box {
+            background-color: rgba(60, 60, 65, 0.8); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem; 
+            padding: 0.75rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .unique-fact-box strong {
+            color: #A0AEC0; 
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem; 
+        }
+        .unique-fact-box span#planet-fact { 
+            display: inline; 
+        }
+
+
+        /* Pembungkus UI Menu Utama */
+        #menu-ui-wrapper {
+            position: fixed;
+            bottom: 0.5rem; 
+            left: 50%;
+            transform: translateX(-50%) translateY(0px); /* Default di tengah bawah */
+            opacity: 1; /* Default terlihat */
+            z-index: 19; 
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem; 
+            transition: bottom 0.3s ease, left 0.3s ease, transform 0.3s ease-out, opacity 0.3s ease-out; 
+        }
+        #menu-ui-wrapper.intro-animation-start { /* Kelas untuk memulai animasi intro */
+            transform: translateX(-50%) translateY(60px); 
+            opacity: 0;
+        }
+        #menu-ui-wrapper.intro-active { /* Kelas untuk menjalankan animasi intro */
+            opacity: 1;
+            transform: translateX(-50%) translateY(0px);
+        }
+        #menu-ui-wrapper.fullscreen-active {
+            bottom: 1rem;
+            left: 1rem;
+            transform: none; 
+            background-color: rgba(40, 40, 45, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 0.4rem;
+            border-radius: 9999px; 
+        }
+
+
+        /* Latar Belakang Buram untuk Menu Fitur */
+        #menu-blur-backdrop {
+            position: absolute; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(20, 20, 25, 0.35); 
+            backdrop-filter: blur(10px) saturate(160%);
+            -webkit-backdrop-filter: blur(10px) saturate(160%);
+            border-radius: 9999px; 
+            z-index: 1; 
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none; 
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #menu-blur-backdrop.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        #menu-ui-wrapper.fullscreen-active #menu-blur-backdrop { 
+            display: none;
+        }
+
+
+        /* Kontrol Utama (Tombol-tombol) */
+        #bottom-center-controls {
+            position: relative; 
+            z-index: 2; 
+            display: flex;
+            align-items: center;
+            gap: 0.2rem; 
+        }
+        #menu-ui-wrapper.fullscreen-active #bottom-center-controls {
+            gap: 0.3rem; 
+        }
+
+        .feature-group {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem; 
+        }
+         #menu-ui-wrapper.fullscreen-active .feature-group {
+            gap: 0.3rem;
+        }
+
+
+        /* Tombol Kapsul Umum */
+        .capsule-button {
+            border-radius: 9999px; padding: 0.4rem 0.8rem; height: 36px; 
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+            font-family: 'Inter', sans-serif; font-size: 0.8rem; 
+            font-weight: 600;
+            color: white; cursor: pointer;
+            position: relative; 
+            overflow: hidden; 
+            pointer-events: auto; 
+            
+            background-color: rgba(55, 55, 60, 0.7); 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px) saturate(170%); 
+            -webkit-backdrop-filter: blur(12px) saturate(170%);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
+            transition: background-color 0.2s ease, 
+                        transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                        box-shadow 0.2s ease, 
+                        opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                        width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        margin 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        border-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .capsule-button:hover {
+            background-color: rgba(75, 75, 80, 0.8);
+            transform: translateY(-1px) scale(1.01); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .capsule-button:active { 
+            transform: translateY(0px) scale(0.97);
+            background-color: rgba(45, 45, 50, 0.75);
+        }
+        .capsule-button svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; } 
+        
+        /* Tombol Menu Utama */
+        #menu-toggle-button {
+             padding: 0.4rem 1rem; 
+             min-width: auto; 
+        }
+        #menu-toggle-button.features-open {
+            transform: translateY(50px) scale(0.8); 
+            opacity: 0;
+            width: 0 !important; 
+            min-width: 0 !important; 
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            border-width: 0 !important;
+            pointer-events: none; 
+        }
+        /* Efek shiny untuk tombol menu utama saat intro */
+        #menu-toggle-button.shiny-intro-active::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -150%; 
+            width: 70%; 
+            height: 100%;
+            background: linear-gradient(
+                90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.5) 50%, 
+                transparent 100%
+            );
+            transform: skewX(-25deg); 
+            animation: shiny-effect-main-button 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes shiny-effect-main-button {
+            0% { left: -150%; }
+            100% { left: 150%; }
+        }
+
+
+        /* Tombol Fitur */
+        .feature-button {
+            display: none; 
+            opacity: 0;
+            transform: scale(0.7) translateY(5px); 
+            min-width: 36px; 
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s; 
+        }
+        .feature-button.visible {
+            display: flex; 
+            opacity: 1;
+            transform: scale(1) translateY(0px); 
+        }
+
+        /* Efek Kilau (Shiny) untuk tombol fitur */
+        .feature-button.shiny-animate::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -150%; 
+            width: 50%; 
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                transparent 0%,
+                rgba(255, 255, 255, 0.35) 50%, 
+                transparent 100%
+            );
+            transform: skewX(-25deg); 
+            animation: shiny-effect 0.85s cubic-bezier(0.4, 0, 0.2, 1) forwards; 
+        }
+
+        @keyframes shiny-effect { /* Dipakai oleh feature-button */
+            0% { left: -150%; }
+            100% { left: 150%; }
+        }
+
+        /* Fullscreen specific styles */
+        #menu-ui-wrapper.fullscreen-active .capsule-button,
+        #menu-ui-wrapper.fullscreen-active #menu-toggle-button {
+            width: 36px; /* Ukuran tombol bulat */
+            height: 36px;
+            padding: 0.25rem; /* Sesuaikan padding untuk ikon */
+            min-width: 36px;
+        }
+         #menu-ui-wrapper.fullscreen-active .capsule-button span, /* Sembunyikan teks */
+         #menu-ui-wrapper.fullscreen-active #menu-toggle-button span:not(.icon-only) { /* Sembunyikan teks di menu utama, kecuali jika itu ikon */
+            display: none;
+        }
+        #menu-ui-wrapper.fullscreen-active #menu-toggle-button.features-open {
+            /* Pastikan tetap tersembunyi saat fitur terbuka di fullscreen */
+            width: 0 !important;
+            height: 0 !important;
+            padding: 0 !important;
+            border-width: 0 !important;
+        }
+
+
+        #close-info-button {
+            background: none; border: none; color: #CBD5E0; cursor: pointer; padding: 0.25rem;
+        }
+        #close-info-button:hover { color: white; }
+        #close-info-button svg { width: 20px; height: 20px; }
+
+        /* Pop-up Kontrol Umum */
+        .control-popup {
+            position: fixed;
+            bottom: 75px; 
+            left: 50%;
+            width: clamp(260px, 85vw, 360px); 
+            max-height: calc(100vh - 100px - 2rem - 20px); 
+            overflow-y: auto; 
+            transform: translateX(-50%) translateY(20px); 
+            background-color: rgba(40, 40, 45, 0.8); 
+            backdrop-filter: blur(14px) saturate(180%);
+            -webkit-backdrop-filter: blur(14px) saturate(180%);
+            padding: 0.8rem 1.2rem; 
+            border-radius: 0.75rem; 
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            z-index: 25; 
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem; 
+        }
+        .control-popup.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0); 
+        }
+        .popup-header { 
+            width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 0.4rem;
         }
-        #info-panel p {
-            font-size: 0.90rem; 
-            margin-bottom: 0.5rem; 
-            line-height: 1.5;
+        .popup-header h3 {
+            font-size: 0.95rem; 
+            font-weight: 600;
+            color: #E0E0E0;
         }
-        .hidden { /* Utility to truly hide, not for transition */
-            display: none !important;
-        }
-        #controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 10;
+        .popup-slider-container, .popup-toggle-container { 
             display: flex;
-            gap: 0.75rem; /* Horizontal layout for icons */
-        }
-        .control-button {
-            background-color: rgba(59, 130, 246, 0.8); /* Tailwind blue-500 with transparency */
-            color: white;
-            width: 48px; /* Square buttons for icons */
-            height: 48px;
-            display: flex;
-            justify-content: center;
             align-items: center;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            gap: 0.6rem;
+            width: 100%;
+        }
+        .popup-slider-container label, .popup-toggle-container label { 
+            font-size: 0.8rem;
+            white-space: normal; 
+            flex-shrink: 1; 
+        }
+        .popup-slider-container input[type="range"] { 
+            flex-grow: 1;
+            min-width: 80px; 
+            accent-color: #60A5FA; 
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .control-button:hover {
-            background-color: rgba(37, 99, 235, 0.9); /* Tailwind blue-600 */
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        .popup-slider-container span { 
+             font-size: 0.8rem;
+             min-width: 3.5em; 
+             text-align: right;
         }
-        .control-button:active {
-            transform: translateY(0px);
-        }
-        .control-button svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-        }
-        #close-info-button {
+        .popup-icon-button, .popup-text-button { 
             background: none;
             border: none;
-            color: #CBD5E0; /* Tailwind gray-400 */
+            color: #E0E0E0;
             cursor: pointer;
-            padding: 0.25rem;
+            padding: 0.2rem; 
         }
-        #close-info-button:hover {
+        .popup-icon-button svg {
+            width: 20px; 
+            height: 20px;
+            fill: currentColor;
+        }
+        .popup-icon-button:hover, .popup-text-button:hover {
             color: white;
         }
-        #close-info-button svg {
-            width: 20px;
-            height: 20px;
+        .popup-buttons-container { 
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 0.4rem;
+            flex-wrap: wrap; 
+            justify-content: center; 
+        }
+        .popup-toggle-container label {
+            flex-grow: 1;
+            font-size: 0.85rem; 
         }
 
-        body.light-mode {
-            background-color: #E0F2FE;
-            color: #1E293B;
+        /* Kontainer Notifikasi */
+        #notification-container {
+            position: fixed;
+            top: 1rem; 
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000; 
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            gap: 0.5rem;
+            pointer-events: none; 
         }
+        .notification-message {
+            background-color: rgba(30, 30, 35, 0.85);
+            backdrop-filter: blur(10px) saturate(160%);
+            -webkit-backdrop-filter: blur(10px) saturate(160%);
+            color: white;
+            padding: 0.65rem 1rem; 
+            border-radius: 0.5rem; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            font-size: 0.875rem;
+            opacity: 0;
+            display: flex; 
+            align-items: center;
+            gap: 0.5rem;
+            pointer-events: all; 
+            animation: notification-enter 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000) forwards, 
+                       notification-glow 1s ease-out 0s 1, 
+                       notification-exit 0.4s cubic-bezier(0.550, 0.055, 0.675, 0.190) 4.6s forwards; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .notification-close-btn {
+            background: none;
+            border: none;
+            color: #a0aec0; 
+            cursor: pointer;
+            padding: 0.15rem;
+            margin-left: 0.5rem;
+        }
+        .notification-close-btn:hover {
+            color: white;
+        }
+        .notification-close-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        @keyframes notification-glow {
+            0% { box-shadow: 0 0 0px rgba(100, 180, 255, 0); }
+            50% { box-shadow: 0 0 18px 6px rgba(100, 180, 255, 0.45); } 
+            100% { box-shadow: 0 0 0px rgba(100, 180, 255, 0); }
+        }
+        @keyframes notification-enter {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes notification-exit {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to { opacity: 0; transform: translateY(-10px) scale(0.9); }
+        }
+
+
+        /* Mode Terang */
+        body.light-mode { background-color: #E0F2FE; color: #1E293B; }
         body.light-mode #info-panel {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: rgba(248, 249, 250, 0.75); 
+            color: #1E3A8A; border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        body.light-mode #info-panel h2 { color: #1e40af; }
+        body.light-mode #info-panel p { color: #1e3a8a; }
+        body.light-mode #info-panel strong { color: #1c3d5a; }
+        body.light-mode .unique-fact-box {
+            background-color: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0,0,0,0.08);
+        }
+        body.light-mode .unique-fact-box strong { color: #4A5568; }
+        
+        body.light-mode .capsule-button {
+            background-color: rgba(250, 250, 250, 0.7); color: #334155; 
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        body.light-mode .capsule-button:hover { background-color: rgba(255, 255, 255, 0.85); }
+        body.light-mode .capsule-button:active { background-color: rgba(235, 235, 240, 0.8); }
+        body.light-mode .capsule-button svg { fill: #334155; }
+        
+        body.light-mode #menu-toggle-button.features-open {
+            background-color: rgba(250, 250, 250, 0.7); 
+        }
+        
+        body.light-mode #menu-blur-backdrop {
+            background-color: rgba(225, 230, 240, 0.3); 
+        }
+        body.light-mode .feature-button.visible::before {
+             background: linear-gradient(
+                to right,
+                transparent 0%,
+                rgba(50, 50, 50, 0.2) 50%, 
+                transparent 100%
+            );
+        }
+        body.light-mode #close-info-button { color: #4A5568; }
+        body.light-mode #close-info-button:hover { color: #1E3A8A; }
+
+        body.light-mode .control-popup {
+            background-color: rgba(240, 245, 250, 0.75);
             color: #1E3A8A;
-            border: 1px solid rgba(0, 0, 0, 0.15);
         }
-        body.light-mode #info-panel h2 {
-            color: #2563EB; /* Tailwind blue-600 */
+        body.light-mode .popup-icon-button, body.light-mode .popup-text-button {
+            color: #334155;
         }
-        body.light-mode .control-button {
-            background-color: rgba(96, 165, 250, 0.8); /* Tailwind blue-400 */
+        body.light-mode .popup-icon-button:hover, body.light-mode .popup-text-button:hover {
             color: #1E3A8A;
-            border: 1px solid rgba(0, 0, 0, 0.1);
         }
-        body.light-mode .control-button:hover {
-            background-color: rgba(59, 130, 246, 0.9);
+        body.light-mode .popup-header h3, body.light-mode .popup-toggle-container label {
+            color: #1E3A8A;
         }
-        body.light-mode #close-info-button {
-            color: #4A5568; /* Tailwind gray-600 */
+        body.light-mode .popup-slider-container input[type="range"] {
+            accent-color: #2563EB; /* Tailwind blue-600 */
         }
-        body.light-mode #close-info-button:hover {
+        body.light-mode .notification-message {
+            background-color: rgba(240, 245, 250, 0.9);
+            color: #1E3A8A;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        body.light-mode .notification-close-btn {
+            color: #4A5568;
+        }
+        body.light-mode .notification-close-btn:hover {
             color: #1E3A8A;
         }
 
 
-        #webgl-error {
+        #webgl-error { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background-color: #ffcccc; color: #cc0000; padding: 20px;
             border-radius: 8px; text-align: center; z-index: 1000;
         }
-        #info-panel::-webkit-scrollbar { width: 8px; }
-        #info-panel::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
-        #info-panel::-webkit-scrollbar-thumb { background: rgba(135, 206, 250, 0.5); border-radius: 10px; }
-        body.light-mode #info-panel::-webkit-scrollbar-thumb { background: rgba(60, 130, 246, 0.5); }
+        #info-panel::-webkit-scrollbar { width: 8px; } 
+        #info-panel::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); } 
+        #info-panel::-webkit-scrollbar-thumb { background: rgba(180, 180, 180, 0.7); border-radius: 4px; } 
+        body.light-mode #info-panel::-webkit-scrollbar-thumb { background: rgba(100, 100, 100, 0.7); }
+
+        /* Media Queries untuk Responsivitas */
+        @media (max-width: 768px) { /* Tablet dan di bawahnya */
+            .control-popup {
+                min-width: 240px; 
+                padding: 0.7rem 1rem;
+            }
+            .popup-header h3 {
+                font-size: 0.9rem;
+            }
+            .popup-toggle-container label, .popup-slider-container label, .popup-slider-container span {
+                font-size: 0.75rem; 
+            }
+             .popup-slider-container {
+                gap: 0.5rem; 
+            }
+            .capsule-button { 
+                height: 34px;
+                padding: 0.3rem 0.7rem;
+                font-size: 0.75rem;
+            }
+            .capsule-button svg {
+                width: 16px;
+                height: 16px;
+            }
+            #menu-ui-wrapper {
+                padding: 0.3rem;
+            }
+             #info-panel {
+                max-width: 280px; 
+            }
+        }
+
+        @media (max-width: 480px) { /* Mobile */
+            #info-panel {
+                left: 0.5rem;
+                top: 0.5rem;
+                width: calc(100% - 1rem);
+                max-width: none; 
+                padding: 0.75rem;
+            }
+            #info-panel h2 { font-size: 1.1rem; }
+            #info-panel p { font-size: 0.8rem; }
+
+            #menu-ui-wrapper {
+                bottom: 0.25rem;
+            }
+            .control-popup {
+                bottom: 60px; 
+                width: clamp(220px, 90vw, 280px); 
+                padding: 0.5rem 0.7rem;
+                gap: 0.4rem;
+            }
+            .popup-header h3 { font-size: 0.8rem; }
+            .popup-slider-container, .popup-toggle-container { gap: 0.4rem; }
+            .popup-toggle-container label, .popup-slider-container label, .popup-slider-container span { font-size: 0.7rem; }
+             .capsule-button {
+                height: 30px; 
+                padding: 0.2rem 0.5rem;
+                font-size: 0.65rem;
+                gap: 0.25rem;
+            }
+            .capsule-button svg {
+                width: 12px; 
+                height: 12px;
+            }
+            .popup-icon-button svg { 
+                 width: 18px; 
+                 height: 18px;
+            }
+            #notification-container {
+                top: 0.5rem;
+            }
+            .notification-message {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            #theme-control-popup .popup-slider-container label { 
+                white-space: normal; 
+                margin-right: 0.2rem; 
+                flex-basis: 100px; 
+            }
+             #theme-control-popup .popup-slider-container span {
+                min-width: 2.8em; 
+            }
+        }
+        #tooltip-label {
+            position: fixed;
+            background-color: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            pointer-events: none; 
+            z-index: 1001; 
+            opacity: 0;
+            visibility: hidden; 
+            transition: opacity 0.2s ease-in-out, visibility 0s linear 0.2s; 
+        }
+        #tooltip-label.visible {
+            opacity: 1;
+            visibility: visible;
+            transition-delay: 0s;
+        }
+
+
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="scene-container"></div>
+    <div id="notification-container"></div> 
+    <div id="tooltip-label"></div> 
+    <div id="menu-ui-wrapper">
+        <div id="menu-blur-backdrop"></div> 
+        <div id="bottom-center-controls">
+            <div id="feature-buttons-left" class="feature-group">
+                <button id="sound-toggle" class="capsule-button feature-button" title="Pengaturan Suara"></button> 
+                <button id="orbit-speed-toggle" class="capsule-button feature-button" title="Kecepatan Orbit"></button> 
+                <button id="zoom-toggle" class="capsule-button feature-button" title="Kontrol Zoom"></button> 
+                <button id="theme-settings-toggle" class="capsule-button feature-button" title="Pengaturan Tema"></button> 
+            </div>
+            <button id="menu-toggle-button" class="capsule-button" title="Menu"></button>
+            <div id="feature-buttons-right" class="feature-group">
+                </div>
+        </div>
+    </div>
 
-    <div id="info-panel"> <h2>
+    <div id="volume-control-popup" class="control-popup">
+        <div class="popup-header">
+            <h3>Volume Suara</h3>
+            <button id="close-volume-popup-button" class="popup-icon-button" title="Tutup"></button>
+        </div>
+        <div class="popup-slider-container">
+            <button id="dynamic-volume-icon" class="popup-icon-button" title="Mute/Unmute"></button>
+            <input type="range" id="volume-slider" min="0" max="200" value="100">
+            <button id="reset-volume-button" class="popup-icon-button" title="Reset Volume"></button>
+        </div>
+        <div class="popup-toggle-container" style="margin-top: 0.5rem;">
+            <label>Suara Tombol</label>
+            <button id="button-sound-toggle" class="popup-icon-button" title="Aktif/Nonaktifkan Suara Tombol"></button>
+        </div>
+    </div>
+
+    <div id="orbit-speed-control-popup" class="control-popup">
+        <div class="popup-header">
+            <h3>Kecepatan Orbit & Animasi</h3>
+            <button id="close-orbit-popup-button" class="popup-icon-button" title="Tutup"></button>
+        </div>
+        <div class="popup-slider-container">
+            <span id="orbit-speed-icon" class="popup-icon-button"></span> 
+            <input type="range" id="orbit-speed-slider" min="1" max="500" value="100"> 
+            <span id="orbit-speed-value-display">1.00x</span>
+        </div>
+         <div class="popup-toggle-container" style="margin-top: 0.5rem;">
+            <label>Garis Orbit</label>
+            <button id="toggle-orbit-lines-button" class="popup-icon-button" title="Aktif/Nonaktifkan Garis Orbit"></button>
+        </div>
+        <div class="popup-buttons-container">
+             <button id="popup-pause-play-orbit-toggle" class="capsule-button popup-text-button" title="Pause/Mulai Animasi Orbit"></button>
+            <button id="real-time-orbit-button" class="capsule-button popup-text-button">Kecepatan Nyata</button>
+            <button id="reset-orbit-speed-button" class="popup-icon-button" title="Reset Kecepatan"></button>
+        </div>
+    </div>
+
+    <div id="zoom-control-popup" class="control-popup">
+        <div class="popup-header">
+            <h3>Kontrol Zoom</h3>
+            <button id="close-zoom-popup-button" class="popup-icon-button" title="Tutup"></button>
+        </div>
+        <div class="popup-slider-container">
+            <span id="zoom-icon" class="popup-icon-button"></span> 
+            <input type="range" id="zoom-slider" min="30" max="120" value="75"> 
+            <span id="zoom-level-display">75°</span>
+        </div>
+        <div class="popup-buttons-container">
+            <button id="reset-zoom-button" class="popup-icon-button" title="Reset Zoom"></button>
+            <button id="fullscreen-toggle-button" class="popup-icon-button" title="Mode Layar Penuh"></button> </div>
+    </div>
+
+    <div id="theme-control-popup" class="control-popup">
+        <div class="popup-header">
+            <h3>Pengaturan Tema Visual</h3>
+            <button id="close-theme-popup-button" class="popup-icon-button" title="Tutup"></button>
+        </div>
+        <div class="popup-toggle-container">
+            <label>Mode Siang/Malam</label>
+            <button id="day-night-toggle-popup" class="popup-icon-button" title="Ganti Mode Tema"></button>
+        </div>
+        <div class="popup-toggle-container" style="margin-top: 0.5rem;">
+            <label>Latar Galaksi</label>
+            <button id="galaxy-toggle-popup" class="popup-icon-button" title="Aktif/Nonaktifkan Latar Galaksi"></button>
+        </div>
+        <div class="popup-toggle-container">
+            <label>Bintang Jatuh</label>
+            <button id="shooting-star-toggle-popup" class="popup-icon-button" title="Aktif/Nonaktifkan Bintang Jatuh"></button>
+        </div>
+         <div class="popup-toggle-container" style="margin-top: 0.5rem;"> 
+            <label>Garis Sumbu</label>
+            <button id="axial-tilt-toggle-popup" class="popup-icon-button" title="Aktif/Nonaktifkan Garis Sumbu"></button>
+        </div>
+        <hr style="width:100%; border-color: rgba(255,255,255,0.1); margin: 0.75rem 0;">
+        <div class="popup-slider-container">
+            <label for="star-density-slider">Jumlah Bintang</label>
+            <input type="range" id="star-density-slider" min="20" max="200" value="100"> <span id="star-density-value-display">1.0x</span>
+        </div>
+        <div class="popup-buttons-container" style="justify-content: flex-end;">
+             <button id="reset-star-density-button" class="popup-icon-button" title="Reset Jumlah Bintang"></button>
+        </div>
+        <div class="popup-slider-container" style="margin-top:0.5rem;">
+            <label for="shooting-star-frequency-slider">Frekuensi B. Jatuh</label>
+            <input type="range" id="shooting-star-frequency-slider" min="10" max="500" value="100"> <span id="shooting-star-frequency-value-display">1.0x</span>
+        </div>
+         <div class="popup-buttons-container" style="justify-content: flex-end;">
+            <button id="reset-shooting-star-frequency-button" class="popup-icon-button" title="Reset Frekuensi Bintang Jatuh"></button>
+        </div>
+    </div>
+
+
+    <div id="info-panel"> 
+        <h2>
             <span id="planet-name"></span>
-            <button id="close-info-button" title="Tutup Informasi">
-                </button>
+            <button id="close-info-button" title="Tutup Informasi"></button>
         </h2>
         <p id="planet-description"></p>
         <p><strong>Jarak dari Matahari:</strong> <span id="planet-distance-info"></span></p>
@@ -175,69 +787,140 @@
         <p><strong>Bulan:</strong> <span id="planet-moons"></span></p>
         <p><strong>Atmosfer Utama:</strong> <span id="planet-atmosphere"></span></p>
         <p><strong>Penemuan:</strong> <span id="planet-discovery"></span></p>
-        <p class="mt-2"><strong>Fakta Unik:</strong> <span id="planet-fact" class="font-semibold"></span></p>
-    </div>
-
-    <div id="controls">
-        <button id="pause-play-toggle" class="control-button" title="Pause/Mulai Animasi">
-            </button>
-        <button id="sound-toggle" class="control-button" title="Suara Nyala/Mati">
-            </button>
-        <button id="theme-toggle" class="control-button" title="Ganti Mode Tema">
-            </button>
+        <div class="unique-fact-box"> <strong>Fakta Unik:</strong> 
+            <span id="planet-fact" class="font-semibold"></span>
+        </div>
     </div>
 
     <div id="webgl-error" class="hidden">
-        Maaf, browser Anda sepertinya tidak mendukung WebGL, yang diperlukan untuk simulasi ini.
-        Coba perbarui browser Anda atau gunakan browser lain seperti Chrome atau Firefox.
+        Maaf, browser Anda sepertinya tidak mendukung WebGL...
     </div>
 
     <script>
+        console.log("Script execution started."); 
+
         if (!window.WebGLRenderingContext) {
             document.getElementById('webgl-error').classList.remove('hidden');
-            document.getElementById('controls').classList.add('hidden');
+            const menuWrapper = document.getElementById('menu-ui-wrapper');
+            if (menuWrapper) menuWrapper.classList.add('hidden');
+            ['volume-control-popup', 'orbit-speed-control-popup', 'zoom-control-popup', 'theme-control-popup'].forEach(id => {
+                const popup = document.getElementById(id);
+                if (popup) popup.classList.add('hidden');
+            });
+
         } else {
+            // Variabel global (didefinisikan di luar init agar bisa diakses fungsi lain)
             let scene, camera, renderer, raycaster, mouse;
             let ambientLight, sunLight;
-            const planets = [];
-            const orbits = [];
-            let starField;
-            let soundEnabled = false;
-            let isNightMode = true;
-            let ambientSynth;
+            const planets = []; 
+            const orbits = []; 
+            let starField, galaxySprites = [], shootingStar; 
+            const axialTiltLines = []; 
             
-            let clickedObject = null; // Objek yang sedang diklik dan panelnya tampil
-            let isPausedByPlanetInteraction = false; // Pause karena interaksi klik planet
-            let isGloballyPaused = false; // Pause karena tombol global pause/play
+            let soundGloballyEnabled = true; 
+            let currentVolumePercent = 100; 
+            let lastVolumeBeforeMute = 100; 
+            let isMuted = false; 
+            let ambientSynth, autoFilter, reverb, ambientVolumeNode; 
+            let buttonClickSoundEnabled = true; 
+            let clickSynth; 
+            let audioContextInitialized = false; 
 
-            // SVG Icons
-            const icons = {
+            let currentOrbitSpeedMultiplier = 1.0;
+            const defaultOrbitSpeedMultiplier = 1.0;
+            const realTimeOrbitSpeedMultiplier = 0.01; 
+
+            const defaultFov = 75;
+            let currentFov = defaultFov;
+            const minFov = 30; 
+            const maxFov = 120; 
+            let parallaxMouseX = 0;
+            let parallaxMouseY = 0;
+            const parallaxIntensity = 3; 
+
+            let galaxyBackgroundsEnabled = true;
+            let shootingStarsEnabled = true;
+            let axialTiltLinesEnabled = true; 
+            let orbitLinesEnabled = true; 
+            let shootingStarCooldown = 0;
+            const SHOOTING_STAR_BASE_COOLDOWN_MAX = 200; 
+            let currentShootingStarFrequency = 1.0; 
+            const defaultShootingStarFrequency = 1.0;
+
+            let currentStarDensity = 1.0; 
+            const defaultStarDensity = 1.0;
+            const baseStarCount = 7500; 
+            
+            let clickedObject = null; 
+            let hoveredObject = null; 
+            let isPausedByPlanetInteraction = false; 
+            let isGloballyPaused = false; 
+            let isNightMode = true;
+
+            let volumeSliderNotificationTimer;
+            let orbitSpeedSliderNotificationTimer;
+            let zoomSliderNotificationTimer;
+            let starDensitySliderNotificationTimer;
+            let shootingStarFrequencySliderNotificationTimer;
+            const notificationDebounceDelay = 500; 
+
+            // Definisi ikon SVG (sama seperti sebelumnya, disingkat di sini)
+            const icons = { 
                 soundOn: `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`,
                 soundOff: `<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L7 9H3v6h4l5 5V4z"></path></svg>`,
                 sun: `<svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2.28c-.6.34-1 .98-1 1.72s.4 1.38 1 1.72V17h-2v-2.28c.6-.34 1-.98 1-1.72s-.4-1.38-1-1.72V7zm4.44 2.06l1.41-1.41 1.06 1.06-1.41 1.41C16.99 10.51 17 11.25 17 12s-.01 1.49-.56 2.94l1.41 1.41-1.06 1.06-1.41-1.41C15.01 15.49 15 14.75 15 14c0-1.11.36-2.14 1.44-2.94zM4.5 10.06L5.56 9.01l1.41 1.41C6.36 11.86 6 12.89 6 14c0 .75.01 1.49.56 2.94L5.56 17.99l-1.41-1.41C3.01 15.49 3 14.75 3 14s.01-1.49.56-2.94z"></path></svg>`,
                 moon: `<svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c0-3.03 2.47-5.5 5.5-5.5.17 0 .33.01.5.02-2.78.89-4.98 3.25-5.44 6.12-.02.16-.04.33-.06.5C6.5 14.47 6.5 12 6.5 12z"></path></svg>`,
                 play: `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`,
                 pause: `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`,
-                close: `<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>`
+                close: `<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>`,
+                menu: `<svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>`,
+                volumeMute: `<svg viewBox="0 0 24 24"><path d="M7 9v6h4l5 5V4l-5 5H7zm7.91-2.83L12.76 8.32C13.68 8.89 14.25 9.86 14.25 11s-.57 2.11-1.49 2.68l2.15 2.15C16.18 14.93 17 13.08 17 11s-.82-3.93-2.09-4.83zM4.27 3L3 4.27l2.28 2.28L1.41 8.41 0 7l3-3L0 1l1.41-1.41L22.73 21l1.27-1.27L4.27 3zM19 11c0 1.66-1.34 3-3 3v-2c.55 0 1-.45 1-1s-.45-1-1-1V6.43c2.61.64 4.5 2.95 4.5 5.57z"></path></svg>`,
+                volumeLow: `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm10.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"></path></svg>`,
+                volumeMedium: `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v.01z"></path></svg>`,
+                volumeHigh: `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`,
+                reset: `<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg>`,
+                orbit: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20ZM12,7a5,5,0,1,0,5,5A5,5,0,0,0,12,7Zm0,8a3,3,0,1,1,3-3A3,3,0,0,1,12,15Z"/></svg>`,
+                speed: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.74,12.04,15,10.26V7.5a1,1,0,0,0-2,0V10.26L8.26,12.04a1,1,0,0,0-.55.9V16.5a1,1,0,0,0,2,0V13.74l4.71-1.78,4.74,1.78V16.5a1,1,0,0,0,2,0V12.94A1,1,0,0,0,19.74,12.04ZM14,20a1,1,0,0,0,1,1h4a1,1,0,0,0,0-2H15A1,1,0,0,0,14,20ZM5,21H9a1,1,0,0,0,0-2H5a1,1,0,0,0,0,2Z"/></svg>`,
+                zoom: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM10 9h-1V8h1V7h1v1h1v1h-1v1h-1V9z"/></svg>`,
+                toggleOn: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h10c2.76 0 5-2.24 5-5s-2.24-5-5-5zm0 8c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>`,
+                toggleOff: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-2.76 0-5 2.24-5 5s2.24 5 5 5h10c2.76 0 5-2.24 5-5s-2.24-5-5-5H7zm0 8c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>`,
+                themeIcon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9c0 .17.01.33.03.5C6.14 11.07 10 8.07 10 4.5c0-1.05-.27-2.02-.74-2.84A8.94 8.94 0 0 0 12 3zm0 15a9 9 0 0 0 5.66-1.93A6.508 6.508 0 0 1 12 17.5c-3.03 0-5.59-2.07-6.34-4.97A8.944 8.944 0 0 0 12 18zm7.5-5c0-4.13-3.01-7.56-6.97-7.93C12.83 4.42 13 5.16 13 6c0 3.31-2.69 6-6 6-.84 0-1.58-.17-2.27-.48C4.31 14.99 7.87 18.5 12.5 18.5c2.76 0 5.26-1.23 7-3.22.17-.32.27-.68.3-1.05.02-.08.03-.16.03-.23 0-.17-.01-.33-.03-.5zM20.97 10.5C20.99 10.67 21 10.83 21 11c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8c.17 0 .33.01.5.03C12.94 5.51 10 8.51 10 12.5c0 3.03 2.07 5.59 4.97 6.34.23.05.47.08.71.1.23.02.47.03.71.03.55 0 1.08-.08 1.59-.22A6.473 6.473 0 0 1 12.5 13C9.46 13 7 10.54 7 7.5c0-.55.08-1.08.22-1.59.02-.24.05-.48.08-.71.03-.24.07-.48.1-.71C4.51 5.06 1.51 8 1.51 12c0 3.31 2.69 6 6 6 .84 0 1.58-.17 2.27-.48.27-.12.53-.25.78-.4.05-.03.1-.06.15-.09.22-.14.44-.29.64-.45.2-.17.39-.35.57-.54.18-.19.34-.4.5-.61.15-.21.29-.43.41-.66.12-.23.22-.47.31-.71.09-.24.16-.49.22-.74.06-.25.1-.5.14-.76.03-.25.05-.51.05-.77 0-.26-.02-.52-.05-.77a6.44 6.44 0 0 1-.14-.76c-.06-.25-.13-.49-.22-.74a6.53 6.53 0 0 1-.31-.71c-.12-.23-.26-.45-.41-.66a6.532 6.532 0 0 1-.5-.61c-.18-.19-.39-.37-.57-.54a6.51 6.51 0 0 1-.64-.45c-.05-.03-.1-.07-.15-.09a6.503 6.503 0 0 1-.78-.4C12.92 3.17 12.18 3 11.34 3c-.17 0-.33.01-.5.03A8.987 8.987 0 0 0 3 12c0 .17.01.33.03.5.48 2.85 2.78 5.05 5.63 5.44.23.02.46.04.7.05.24.01.47.01.71.01 4.42 0 8-3.58 8-8 0-.17-.01-.33-.03-.5z"/></svg>`,
+                fullscreenEnter: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path></svg>`,
+                fullscreenExit: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"></path></svg>`
             };
+            
+            const planetData = {
+                sun: { name: "Matahari", color: 0xFFFF00, size: 12, axialTilt: 7.25, description: "Matahari adalah bintang di pusat Tata Surya. Ini adalah bola plasma panas yang hampir sempurna, memancarkan energi terutama sebagai cahaya, ultraviolet, dan radiasi inframerah, dan merupakan sumber energi terpenting untuk kehidupan di Bumi.", fact: "Matahari menyumbang sekitar 99,86% dari total massa Tata Surya dan permukaannya memiliki suhu sekitar 5.500 derajat Celsius.", orbitalPeriod: "N/A", diameter: "1.392.700 km", distanceFromSunText: "N/A", dayLength: "Sekitar 25-35 hari Bumi", surfaceTemperature: "Permukaan: ~5.500°C", gravity: "~274 m/s² (28g)", moonsText: "N/A (memiliki planet)", atmosphere: "Hidrogen (~74%), Helium (~24%)", discovery: "Dikenal sejak zaman kuno", speed: 0},
+                mercury: { name: "Merkurius", color: 0x9E9E9E, size: 0.8, distance: 25, speed: 0.018, axialTilt: 0.03, description: "Merkurius adalah planet terkecil di Tata Surya dan yang paling dekat dengan Matahari. Orbitnya yang cepat dan kurangnya atmosfer yang signifikan menyebabkan suhu permukaan yang ekstrem.", fact: "Satu hari matahari di Merkurius (dari siang ke siang berikutnya) berlangsung selama 176 hari Bumi, lebih lama dari periode orbitnya (88 hari Bumi).", orbitalPeriod: "88 hari Bumi", diameter: "4.879 km", distanceFromSunText: "57,9 juta km", dayLength: "58,6 hari Bumi", surfaceTemperature: "-173°C hingga 427°C", gravity: "3,7 m/s² (0,38g)", moonsText: "Tidak ada", atmosphere: "Sangat tipis (eksosfer)", discovery: "Dikenal sejak zaman kuno"},
+                venus: { name: "Venus", color: 0xE0C395, size: 1.3, distance: 35, speed: 0.013, axialTilt: 177.36, description: "Venus adalah planet kedua dari Matahari dan sering disebut 'kembaran Bumi' karena ukuran dan komposisinya yang mirip. Namun, atmosfernya yang tebal dan beracun menciptakan efek rumah kaca yang tak terkendali, menjadikannya planet terpanas di Tata Surya. Planet ini diselimuti awan asam sulfat tebal yang memantulkan sinar matahari.", fact: "Venus berotasi berlawanan arah (retrograde) dibandingkan sebagian besar planet lain, dan sangat lambat. Satu hari di Venus (243 hari Bumi) lebih lama dari satu tahunnya (225 hari Bumi). Tekanan atmosfer di permukaannya lebih dari 90 kali tekanan di Bumi.", orbitalPeriod: "225 hari Bumi", diameter: "12.104 km", distanceFromSunText: "108,2 juta km", dayLength: "243 hari Bumi (retrograde)", surfaceTemperature: "Rata-rata 464°C", gravity: "8,87 m/s² (0,90g)", moonsText: "Tidak ada", atmosphere: "Karbon Dioksida (96,5%), Nitrogen", discovery: "Dikenal sejak zaman kuno"},
+                earth: { name: "Bumi", color: 0x6699FF, size: 1.4, distance: 48, speed: 0.01, axialTilt: 23.44, description: "Bumi adalah planet ketiga dari Matahari dan satu-satunya tempat yang diketahui memiliki kehidupan. Memiliki lautan air cair di permukaannya dan atmosfer yang mendukung kehidupan, terdiri dari nitrogen dan oksigen.", fact: "Bumi memiliki medan magnet kuat yang dihasilkan oleh inti besinya, yang melindungi planet dari radiasi matahari berbahaya dan angin matahari. Kemiringan sumbunya menyebabkan adanya musim.", orbitalPeriod: "365,25 hari Bumi", diameter: "12.742 km", distanceFromSunText: "149,6 juta km", dayLength: "23 jam 56 menit", surfaceTemperature: "Rata-rata 15°C", gravity: "9,807 m/s² (1g)", moonsText: "1 (Bulan)", atmosphere: "Nitrogen (78%), Oksigen (21%)", discovery: "Dikenal sejak zaman kuno", moon: { name: "Bulan", color: 0xCCCCCC, size: 0.35, distance: 3, speed: 0.1, axialTilt: 6.68, description: "Satelit alami Bumi, mempengaruhi pasang surut dan menstabilkan kemiringan sumbu Bumi.", fact: "Bulan adalah satu-satunya benda langit selain Bumi yang pernah diinjak manusia.", orbitalPeriod: "27,3 hari Bumi (mengorbit Bumi)", diameter: "3.474 km", distanceFromSunText: "Mengorbit Bumi pada jarak rata-rata 384.400 km", dayLength: "27,3 hari Bumi (rotasi sinkron)", surfaceTemperature: "-173°C (malam) hingga 127°C (siang)", gravity: "1,62 m/s² (0,165g)", moonsText: "N/A", atmosphere: "Sangat tipis (eksosfer)", discovery: "Dikenal sejak zaman kuno"}},
+                mars: { name: "Mars", color: 0xFF7F50, size: 1, distance: 65, speed: 0.008, axialTilt: 25.19, description: "Dikenal sebagai Planet Merah karena kandungan besi oksida di permukaannya, Mars memiliki gunung berapi tertinggi (Olympus Mons) dan ngarai terpanjang (Valles Marineris) di Tata Surya. Ada bukti kuat bahwa air pernah mengalir di permukaannya, dan pencarian kehidupan di Mars terus berlanjut.", fact: "Mars memiliki dua bulan kecil bernama Phobos dan Deimos, yang kemungkinan adalah asteroid yang tertangkap oleh gravitasi Mars. Phobos perlahan-lahan mendekati Mars dan diperkirakan akan hancur atau menabrak planet dalam puluhan juta tahun.", orbitalPeriod: "687 hari Bumi", diameter: "6.779 km", distanceFromSunText: "227,9 juta km", dayLength: "24 jam 37 menit", surfaceTemperature: "-143°C hingga 35°C", gravity: "3,721 m/s² (0,38g)", moonsText: "2 (Phobos, Deimos)", atmosphere: "Karbon Dioksida (95%), Nitrogen, Argon", discovery: "Dikenal sejak zaman kuno"},
+                jupiter: { name: "Jupiter", color: 0xFFD700, size: 5, distance: 100, speed: 0.004, axialTilt: 3.13, description: "Jupiter adalah planet terbesar di Tata Surya, sebuah raksasa gas dengan Bintik Merah Raksasa yang terkenal, sebuah badai antisiklonik yang telah berlangsung selama ratusan tahun. Jupiter memiliki sistem cincin yang samar dan banyak bulan, serta memancarkan lebih banyak panas daripada yang diterimanya dari Matahari.", fact: "Jupiter memiliki medan magnet terkuat dari semua planet, sekitar 20.000 kali lebih kuat dari Bumi, dan memiliki puluhan bulan, termasuk empat bulan Galilean besar: Io, Europa, Ganymede, dan Callisto. Ganymede adalah bulan terbesar di Tata Surya.", orbitalPeriod: "11,9 tahun Bumi", diameter: "139.820 km", distanceFromSunText: "778,5 juta km", dayLength: "9 jam 56 menit", surfaceTemperature: "Awan atas: -145°C", gravity: "24,79 m/s² (2,53g)", moonsText: "95 (Io, Europa, dll.)", atmosphere: "Hidrogen (~89%), Helium (~10%)", discovery: "Dikenal sejak zaman kuno"},
+                saturn: { name: "Saturnus", color: 0xF0E68C, size: 4.2, distance: 140, speed: 0.003, axialTilt: 26.73, description: "Saturnus terkenal karena sistem cincinnya yang spektakuler, yang terbuat dari miliaran partikel es dan batuan. Ini adalah raksasa gas kedua terbesar di Tata Surya dan memiliki banyak bulan, beberapa di antaranya memiliki kondisi yang menarik untuk penelitian astrobiologi.", fact: "Saturnus memiliki kepadatan yang lebih rendah dari air; jika ada bak mandi cukup besar, Saturnus akan mengapung. Bulan terbesarnya, Titan, memiliki atmosfer yang tebal dan merupakan satu-satunya bulan yang diketahui memiliki bukti jelas adanya cairan stabil di permukaannya.", orbitalPeriod: "29,5 tahun Bumi", diameter: "116.460 km", distanceFromSunText: "1,43 miliar km", dayLength: "10 jam 33 menit", surfaceTemperature: "Awan atas: -178°C", gravity: "10,44 m/s² (1,065g)", moonsText: "146 (Titan, Rhea, dll.)", atmosphere: "Hidrogen (~96%), Helium (~3%)", discovery: "Dikenal sejak zaman kuno", rings: { innerRadius: 5, outerRadius: 9, color: 0xAAAAAA, segments: 64 } },
+                uranus: { name: "Uranus", color: 0xAFEEEE, size: 3, distance: 180, speed: 0.002, axialTilt: 97.77, description: "Uranus adalah raksasa es dengan warna biru-hijau khas karena metana di atmosfernya. Planet ini unik karena berotasi pada sisinya, dengan sumbu rotasi miring hampir sejajar dengan bidang orbitnya, memberinya pola musim yang sangat tidak biasa.", fact: "Uranus berotasi pada sisinya dengan kemiringan sumbu sekitar 98 derajat, kemungkinan akibat tabrakan besar di masa lalu. Ini menyebabkan musim yang ekstrem di kutubnya, di mana setiap kutub mengalami 42 tahun kegelapan atau sinar matahari terus-menerus.", orbitalPeriod: "84 tahun Bumi", diameter: "50.724 km", distanceFromSunText: "2,87 miliar km", dayLength: "17 jam 14 menit (retrograde)", surfaceTemperature: "Awan atas: -214°C", gravity: "8,69 m/s² (0,886g)", moonsText: "27 (Titania, Oberon, dll.)", atmosphere: "Hidrogen (~83%), Helium (~15%), Metana", discovery: "William Herschel, 1781"},
+                neptune: { name: "Neptunus", color: 0x4682B4, size: 2.8, distance: 220, speed: 0.001, axialTilt: 28.32, description: "Neptunus adalah raksasa es terjauh dari Matahari dalam Tata Surya kita. Dikenal karena anginnya yang sangat kencang dan Bintik Gelap Besar, mirip dengan Bintik Merah Raksasa Jupiter. Warna birunya yang dalam juga disebabkan oleh metana di atmosfernya.", fact: "Neptunus ditemukan melalui prediksi matematis berdasarkan gangguan pada orbit Uranus, sebelum diamati secara langsung. Angin di Neptunus bisa mencapai kecepatan lebih dari 2.000 km/jam, yang tercepat di Tata Surya.", orbitalPeriod: "164,8 tahun Bumi", diameter: "49.244 km", distanceFromSunText: "4,5 miliar km", dayLength: "16 jam 6 menit", surfaceTemperature: "Awan atas: -201°C", gravity: "11,15 m/s² (1,14g)", moonsText: "14 (Triton, dll.)", atmosphere: "Hidrogen (~80%), Helium (~19%), Metana", discovery: "Johann Galle, 1846"}
+            };
+            
+            // Referensi elemen DOM
+            let menuToggleButton, soundFeatureButton, orbitSpeedFeatureButton, zoomFeatureButton, themeSettingsFeatureButton; 
+            let popupPausePlayOrbitToggleButton; 
+            let allFeatureButtons = [];
+            let menuUiWrapper, menuBlurBackdrop; 
+            let volumeControlPopup, volumeSlider, dynamicVolumeIcon, resetVolumeButton, closeVolumePopupButton, buttonSoundToggleButton;
+            let orbitSpeedControlPopup, orbitSpeedSlider, orbitSpeedIcon, orbitSpeedValueDisplay, realTimeOrbitButton, resetOrbitSpeedButton, closeOrbitPopupButton, toggleOrbitLinesButton; 
+            let zoomControlPopup, zoomSlider, zoomIcon, zoomLevelDisplay, resetZoomButton, closeZoomPopupButton, fullscreenToggleButton; 
+            let themeControlPopup, dayNightTogglePopup, galaxyTogglePopup, shootingStarTogglePopup, axialTiltTogglePopup, closeThemePopupButton; 
+            let starDensitySlider, starDensityValueDisplay, resetStarDensityButton;
+            let shootingStarFrequencySlider, shootingStarFrequencyValueDisplay, resetShootingStarFrequencyButton;
+            let notificationContainer;
+            let tooltipLabelElement; 
 
-            const planetData = { // Data tetap sama seperti sebelumnya
-                sun: { name: "Matahari", color: 0xFFFF00, size: 12, description: "Bintang di pusat Tata Surya kita...", fact: "Matahari menyumbang sekitar 99,86%...", orbitalPeriod: "N/A", diameter: "1.392.700 km", distanceFromSunText: "N/A", dayLength: "Sekitar 25-35 hari Bumi...", surfaceTemperature: "Permukaan: ~5.500°C...", gravity: "~274 m/s² (28g)", moonsText: "N/A (memiliki planet)", atmosphere: "Hidrogen (~74%), Helium (~24%)", discovery: "Dikenal sejak zaman kuno"},
-                mercury: { name: "Merkurius", color: 0x9E9E9E, size: 0.8, distance: 25, speed: 0.018, description: "Planet terkecil...", fact: "Satu hari matahari di Merkurius...", orbitalPeriod: "88 hari Bumi", diameter: "4.879 km", distanceFromSunText: "57,9 juta km", dayLength: "58,6 hari Bumi", surfaceTemperature: "-173°C hingga 427°C", gravity: "3,7 m/s² (0,38g)", moonsText: "Tidak ada", atmosphere: "Sangat tipis...", discovery: "Dikenal sejak zaman kuno"},
-                venus: { name: "Venus", color: 0xE0C395, size: 1.3, distance: 35, speed: 0.013, description: "Planet terpanas...", fact: "Venus berotasi berlawanan arah...", orbitalPeriod: "225 hari Bumi", diameter: "12.104 km", distanceFromSunText: "108,2 juta km", dayLength: "243 hari Bumi (retrograde)", surfaceTemperature: "Rata-rata 464°C", gravity: "8,87 m/s² (0,90g)", moonsText: "Tidak ada", atmosphere: "Karbon Dioksida (96,5%)...", discovery: "Dikenal sejak zaman kuno"},
-                earth: { name: "Bumi", color: 0x6699FF, size: 1.4, distance: 48, speed: 0.01, description: "Satu-satunya planet...", fact: "Bumi memiliki medan magnet...", orbitalPeriod: "365,25 hari Bumi", diameter: "12.742 km", distanceFromSunText: "149,6 juta km", dayLength: "23 jam 56 menit", surfaceTemperature: "Rata-rata 15°C", gravity: "9,807 m/s² (1g)", moonsText: "1 (Bulan)", atmosphere: "Nitrogen (78%), Oksigen (21%)...", discovery: "Dikenal sejak zaman kuno", moon: { name: "Bulan", color: 0xCCCCCC, size: 0.35, distance: 3, speed: 0.1, description: "Satelit alami Bumi...", distanceFromSunText: "Mengorbit Bumi...", orbitalPeriod: "27,3 hari Bumi", diameter: "3.474 km", dayLength: "27,3 hari Bumi", surfaceTemperature: "-173°C hingga 127°C", gravity: "1,62 m/s² (0,165g)", moonsText: "N/A", atmosphere: "Sangat tipis...", discovery: "Dikenal sejak zaman kuno", fact: "Bulan adalah satu-satunya..."}},
-                mars: { name: "Mars", color: 0xFF7F50, size: 1, distance: 65, speed: 0.008, description: "Dikenal sebagai Planet Merah...", fact: "Mars memiliki gunung berapi tertinggi...", orbitalPeriod: "687 hari Bumi", diameter: "6.779 km", distanceFromSunText: "227,9 juta km", dayLength: "24 jam 37 menit", surfaceTemperature: "-143°C hingga 35°C", gravity: "3,721 m/s² (0,38g)", moonsText: "2 (Phobos, Deimos)", atmosphere: "Karbon Dioksida (95%)...", discovery: "Dikenal sejak zaman kuno"},
-                jupiter: { name: "Jupiter", color: 0xFFD700, size: 5, distance: 100, speed: 0.004, description: "Planet terbesar...", fact: "Jupiter memiliki medan magnet terkuat...", orbitalPeriod: "11,9 tahun Bumi", diameter: "139.820 km", distanceFromSunText: "778,5 juta km", dayLength: "9 jam 56 menit", surfaceTemperature: "Awan atas: -145°C", gravity: "24,79 m/s² (2,53g)", moonsText: "95 (Io, Europa...)", atmosphere: "Hidrogen (~89%), Helium (~10%)", discovery: "Dikenal sejak zaman kuno..."},
-                saturn: { name: "Saturnus", color: 0xF0E68C, size: 4.2, distance: 140, speed: 0.003, description: "Dikenal karena sistem cincinnya...", fact: "Saturnus memiliki kepadatan...", orbitalPeriod: "29,5 tahun Bumi", diameter: "116.460 km", distanceFromSunText: "1,43 miliar km", dayLength: "10 jam 33 menit", surfaceTemperature: "Awan atas: -178°C", gravity: "10,44 m/s² (1,065g)", moonsText: "146 (Titan...)", atmosphere: "Hidrogen (~96%), Helium (~3%)", discovery: "Dikenal sejak zaman kuno...", rings: { innerRadius: 5, outerRadius: 9, color: 0xAAAAAA, segments: 64 } },
-                uranus: { name: "Uranus", color: 0xAFEEEE, size: 3, distance: 180, speed: 0.002, description: "Raksasa es...", fact: "Uranus berotasi pada sisinya...", orbitalPeriod: "84 tahun Bumi", diameter: "50.724 km", distanceFromSunText: "2,87 miliar km", dayLength: "17 jam 14 menit (retrograde)", surfaceTemperature: "Awan atas: -214°C", gravity: "8,69 m/s² (0,886g)", moonsText: "27 (Titania...)", atmosphere: "Hidrogen (~83%), Helium (~15%)...", discovery: "William Herschel, 1781"},
-                neptune: { name: "Neptunus", color: 0x4682B4, size: 2.8, distance: 220, speed: 0.001, description: "Raksasa es terjauh...", fact: "Neptunus ditemukan melalui prediksi...", orbitalPeriod: "164,8 tahun Bumi", diameter: "49.244 km", distanceFromSunText: "4,5 miliar km", dayLength: "16 jam 6 menit", surfaceTemperature: "Awan atas: -201°C", gravity: "11,15 m/s² (1,14g)", moonsText: "14 (Triton...)", atmosphere: "Hidrogen (~80%), Helium (~19%)...", discovery: "Johann Galle..."}
-            };
 
             function init() {
+                console.log("init() called");
                 scene = new THREE.Scene();
-                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-                camera.position.set(0, 70, 150);
-                camera.lookAt(scene.position);
+                camera = new THREE.PerspectiveCamera(defaultFov, window.innerWidth / window.innerHeight, 0.1, 2000);
+                camera.position.set(0, 70, 150); camera.lookAt(scene.position);
 
                 const sceneContainer = document.getElementById('scene-container');
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -245,41 +928,843 @@
                 renderer.setPixelRatio(window.devicePixelRatio);
                 sceneContainer.appendChild(renderer.domElement);
 
-                ambientLight = new THREE.AmbientLight(0x606060, isNightMode ? 1.5 : 3.0); // Slightly brighter ambient
-                scene.add(ambientLight);
-                sunLight = new THREE.PointLight(0xFFFFFF, 1.8, 1200); // Slightly stronger sun
-                scene.add(sunLight);
+                ambientLight = new THREE.AmbientLight(0x606060, isNightMode ? 1.5 : 3.0); scene.add(ambientLight);
+                sunLight = new THREE.PointLight(0xFFFFFF, 1.8, 1200); scene.add(sunLight);
 
-                raycaster = new THREE.Raycaster();
-                mouse = new THREE.Vector2();
+                raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
 
-                createStars();
+                console.log("Creating stars..."); 
+                createStars(); 
+                console.log("Creating galaxy sprites..."); 
+                createGalaxySprites(); 
+                console.log("Creating solar system..."); 
                 createSolarSystem();
-
-                // Setup Icons
-                document.getElementById('close-info-button').innerHTML = icons.close;
-                document.getElementById('pause-play-toggle').innerHTML = isGloballyPaused ? icons.play : icons.pause;
-                document.getElementById('sound-toggle').innerHTML = soundEnabled ? icons.soundOn : icons.soundOff;
-                document.getElementById('theme-toggle').innerHTML = isNightMode ? icons.sun : icons.moon; // Sun icon for night mode means "switch to day"
-
-                // Event Listeners
-                window.addEventListener('resize', onWindowResize, false);
-                sceneContainer.addEventListener('mousemove', onSceneMouseMove, false); // For cursor
-                sceneContainer.addEventListener('click', onSceneClick, false); // For interaction
-                document.getElementById('close-info-button').addEventListener('click', closeInfoPanel);
-                document.getElementById('pause-play-toggle').addEventListener('click', toggleGlobalPause);
-                document.getElementById('sound-toggle').addEventListener('click', toggleSound);
-                document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+                console.log("Solar system creation complete."); 
                 
-                updateThemeVisuals(); // Initial theme setup
+                notificationContainer = document.getElementById('notification-container');
+                tooltipLabelElement = document.getElementById('tooltip-label'); 
+
+
+                menuUiWrapper = document.getElementById('menu-ui-wrapper'); 
+                menuBlurBackdrop = document.getElementById('menu-blur-backdrop'); 
+                menuToggleButton = document.getElementById('menu-toggle-button');
+                soundFeatureButton = document.getElementById('sound-toggle'); 
+                orbitSpeedFeatureButton = document.getElementById('orbit-speed-toggle'); 
+                zoomFeatureButton = document.getElementById('zoom-toggle');
+                themeSettingsFeatureButton = document.getElementById('theme-settings-toggle'); 
+                
+                const leftFeatureButtons = Array.from(document.getElementById('feature-buttons-left').children);
+                allFeatureButtons = [...leftFeatureButtons]; 
+
+                volumeControlPopup = document.getElementById('volume-control-popup');
+                volumeSlider = document.getElementById('volume-slider');
+                dynamicVolumeIcon = document.getElementById('dynamic-volume-icon');
+                resetVolumeButton = document.getElementById('reset-volume-button');
+                closeVolumePopupButton = document.getElementById('close-volume-popup-button');
+                buttonSoundToggleButton = document.getElementById('button-sound-toggle');
+
+                orbitSpeedControlPopup = document.getElementById('orbit-speed-control-popup');
+                orbitSpeedSlider = document.getElementById('orbit-speed-slider');
+                orbitSpeedIcon = document.getElementById('orbit-speed-icon');
+                orbitSpeedValueDisplay = document.getElementById('orbit-speed-value-display');
+                realTimeOrbitButton = document.getElementById('real-time-orbit-button');
+                resetOrbitSpeedButton = document.getElementById('reset-orbit-speed-button');
+                closeOrbitPopupButton = document.getElementById('close-orbit-popup-button');
+                popupPausePlayOrbitToggleButton = document.getElementById('popup-pause-play-orbit-toggle');
+                toggleOrbitLinesButton = document.getElementById('toggle-orbit-lines-button');
+
+
+                zoomControlPopup = document.getElementById('zoom-control-popup');
+                zoomSlider = document.getElementById('zoom-slider');
+                zoomIcon = document.getElementById('zoom-icon');
+                zoomLevelDisplay = document.getElementById('zoom-level-display');
+                resetZoomButton = document.getElementById('reset-zoom-button');
+                closeZoomPopupButton = document.getElementById('close-zoom-popup-button');
+                fullscreenToggleButton = document.getElementById('fullscreen-toggle-button');
+
+
+                themeControlPopup = document.getElementById('theme-control-popup');
+                dayNightTogglePopup = document.getElementById('day-night-toggle-popup');
+                galaxyTogglePopup = document.getElementById('galaxy-toggle-popup');
+                shootingStarTogglePopup = document.getElementById('shooting-star-toggle-popup');
+                axialTiltTogglePopup = document.getElementById('axial-tilt-toggle-popup'); 
+                closeThemePopupButton = document.getElementById('close-theme-popup-button');
+                starDensitySlider = document.getElementById('star-density-slider');
+                starDensityValueDisplay = document.getElementById('star-density-value-display');
+                resetStarDensityButton = document.getElementById('reset-star-density-button');
+                shootingStarFrequencySlider = document.getElementById('shooting-star-frequency-slider');
+                shootingStarFrequencyValueDisplay = document.getElementById('shooting-star-frequency-value-display');
+                resetShootingStarFrequencyButton = document.getElementById('reset-shooting-star-frequency-button');
+
+
+                document.getElementById('close-info-button').innerHTML = icons.close;
+                menuToggleButton.innerHTML = icons.menu + " <span class='icon-only'>Menu</span>"; 
+                updatePopupPausePlayOrbitContent(); 
+                updateSoundFeatureButtonContent(); 
+                updateOrbitSpeedFeatureButtonContent(); 
+                updateZoomFeatureButtonContent();
+                updateThemeSettingsFeatureButtonContent(); 
+                
+                closeVolumePopupButton.innerHTML = icons.close;
+                resetVolumeButton.innerHTML = icons.reset;
+                volumeSlider.value = currentVolumePercent; 
+                updateDynamicVolumeIconAndSynth(); 
+                updateButtonSoundToggleIcon();
+
+                closeOrbitPopupButton.innerHTML = icons.close;
+                resetOrbitSpeedButton.innerHTML = icons.reset;
+                orbitSpeedIcon.innerHTML = icons.speed;
+                orbitSpeedSlider.value = currentOrbitSpeedMultiplier * 100;
+                updateOrbitSpeedValueDisplay();
+                updateToggleOrbitLinesButtonIcon();
+
+
+                closeZoomPopupButton.innerHTML = icons.close;
+                resetZoomButton.innerHTML = icons.reset;
+                zoomIcon.innerHTML = icons.zoom;
+                zoomSlider.value = currentFov;
+                updateZoomLevelDisplay();
+                updateFullscreenButtonIcon();
+
+
+                closeThemePopupButton.innerHTML = icons.close;
+                updateDayNightTogglePopupIcon();
+                updateGalaxyTogglePopupIcon();
+                updateShootingStarTogglePopupIcon();
+                updateAxialTiltTogglePopupIcon(); 
+                starDensitySlider.value = currentStarDensity * 100;
+                updateStarDensityValueDisplay();
+                shootingStarFrequencySlider.value = currentShootingStarFrequency * 100;
+                updateShootingStarFrequencyValueDisplay();
+
+
+                const allInteractiveButtons = document.querySelectorAll('.capsule-button, .popup-icon-button, .popup-text-button, #close-info-button');
+                allInteractiveButtons.forEach(button => {
+                    button.addEventListener('click', playClickSound);
+                });
+
+
+                window.addEventListener('resize', onWindowResize, false);
+                sceneContainer.addEventListener('mousemove', onSceneMouseMove, false); 
+                sceneContainer.addEventListener('wheel', handleMouseWheelZoom, { passive: false }); 
+                document.addEventListener('fullscreenchange', handleFullscreenChange); 
+                
+                document.getElementById('close-info-button').addEventListener('click', () => { closeInfoPanel(); /* Notifikasi dihapus */ });
+                menuToggleButton.addEventListener('click', () => { toggleFeatureMenu(false); /* false: bukan initial auto open */ });
+                popupPausePlayOrbitToggleButton.addEventListener('click', () => { toggleGlobalPause(); }); 
+                soundFeatureButton.addEventListener('click', () => { toggleVolumePopup(); /* Notifikasi buka popup dihapus */ }); 
+                themeSettingsFeatureButton.addEventListener('click', () => { toggleThemeControlPopup(); /* Notifikasi buka popup dihapus */ });
+                orbitSpeedFeatureButton.addEventListener('click', () => { toggleOrbitSpeedPopup(); /* Notifikasi buka popup dihapus */ }); 
+                zoomFeatureButton.addEventListener('click', () => { toggleZoomPopup(); /* Notifikasi buka popup dihapus */ });
+
+                volumeSlider.addEventListener('input', handleVolumeSliderChange); 
+                dynamicVolumeIcon.addEventListener('click', () => { toggleMuteViaIcon(); }); 
+                resetVolumeButton.addEventListener('click', () => { handleResetVolume(); showNotification("Volume direset"); });
+                closeVolumePopupButton.addEventListener('click', () => { toggleVolumePopup(); /* Notifikasi tutup popup dihapus */ });
+                buttonSoundToggleButton.addEventListener('click', () => { toggleButtonClickSound(); }); 
+
+
+                orbitSpeedSlider.addEventListener('input', handleOrbitSpeedSliderChange); 
+                realTimeOrbitButton.addEventListener('click', () => { handleRealTimeOrbitSpeed(); showNotification("Kecepatan orbit: Waktu Nyata"); });
+                resetOrbitSpeedButton.addEventListener('click', () => { handleResetOrbitSpeed(); showNotification("Kecepatan orbit direset"); });
+                closeOrbitPopupButton.addEventListener('click', () => { toggleOrbitSpeedPopup(); /* Notifikasi tutup popup dihapus */ });
+                toggleOrbitLinesButton.addEventListener('click', () => { toggleOrbitLinesVisibility(); });
+
+
+                zoomSlider.addEventListener('input', handleZoomSliderChange); 
+                resetZoomButton.addEventListener('click', () => { handleResetZoom(); showNotification("Zoom direset"); });
+                closeZoomPopupButton.addEventListener('click', () => { toggleZoomPopup(); /* Notifikasi tutup popup dihapus */ });
+                fullscreenToggleButton.addEventListener('click', toggleFullscreenMode);
+
+
+                dayNightTogglePopup.addEventListener('click', () => { toggleTheme(); }); 
+                galaxyTogglePopup.addEventListener('click', () => { toggleGalaxyBackgrounds(); });
+                shootingStarTogglePopup.addEventListener('click', () => { toggleShootingStars(); });
+                axialTiltTogglePopup.addEventListener('click', () => { toggleAxialTiltLines(); }); 
+                closeThemePopupButton.addEventListener('click', () => { toggleThemeControlPopup(); /* Notifikasi tutup popup dihapus */ });
+                starDensitySlider.addEventListener('input', handleStarDensityChange);
+                resetStarDensityButton.addEventListener('click', () => { handleResetStarDensity(); showNotification("Jumlah bintang direset"); });
+                shootingStarFrequencySlider.addEventListener('input', handleShootingStarFrequencyChange);
+                resetShootingStarFrequencyButton.addEventListener('click', () => { handleResetShootingStarFrequency(); showNotification("Frekuensi bintang jatuh direset"); });
+
+
+                document.body.addEventListener('click', tryStartAudioContextAndIntro, { once: true }); 
+                
+                updateThemeVisuals(); 
                 animate();
+                
+                console.log("init() finished."); 
             }
 
-            function createStars() { /* Sama seperti sebelumnya */ 
+            function tryStartAudioContextAndIntro() {
+                if (audioContextInitialized) {
+                    console.log("AudioContext sudah diinisialisasi.");
+                    if (menuUiWrapper && !menuUiWrapper.classList.contains('intro-active') && !menuUiWrapper.classList.contains('intro-animation-start')) {
+                        console.log("Menjalankan animasi intro karena konteks audio sudah diinisialisasi sebelumnya.");
+                        startIntroAnimation();
+                    }
+                    return;
+                }
+                console.log("Mencoba memulai Tone.js AudioContext (interaksi pengguna pertama)...");
+                Tone.start().then(async () => { // Jadikan async untuk await Tone.loaded()
+                    console.log("Tone.js AudioContext berhasil dimulai. State:", Tone.context.state);
+                    audioContextInitialized = true; 
+
+                    await Tone.loaded(); // Pastikan semua komponen Tone.js siap
+                    console.log("Tone.js semua komponen telah dimuat.");
+
+                    initializeClickSynth(); 
+                    initializeAmbientSynth(); 
+                    
+                    if (soundGloballyEnabled && ambientSynth) { 
+                        applyCurrentVolumeToSynth(); 
+                        console.log("Suara ambien seharusnya dimulai sekarang jika tidak di-mute.");
+                    } else if (!ambientSynth) {
+                        console.error("Synth ambien tidak terinisialisasi setelah AudioContext dimulai.");
+                    }
+                    
+                    startIntroAnimation();
+
+                }).catch(e => {
+                    console.error("Gagal memulai Tone.js AudioContext:", e);
+                    soundGloballyEnabled = false; 
+                    if(soundFeatureButton && icons.soundOff) soundFeatureButton.innerHTML = icons.soundOff + "<span>Suara (Error)</span>";
+                    if(dynamicVolumeIcon && icons.volumeMute) dynamicVolumeIcon.innerHTML = icons.volumeMute;
+                    
+                    if (!audioContextInitialized) { 
+                         console.warn("Konteks audio gagal, menjalankan animasi intro menu.");
+                         startIntroAnimation(); 
+                    }
+                });
+            }
+
+            function startIntroAnimation() {
+                 if (menuUiWrapper && menuToggleButton) {
+                    console.log("Memulai animasi intro menu...");
+                    menuUiWrapper.classList.add('intro-animation-start'); 
+                    void menuUiWrapper.offsetWidth; 
+                    
+                    setTimeout(() => { 
+                        menuUiWrapper.classList.add('intro-active'); 
+                        setTimeout(() => {
+                            if (menuToggleButton) {
+                                menuToggleButton.classList.add('shiny-intro-active'); 
+                                setTimeout(() => {
+                                    menuToggleButton.classList.remove('shiny-intro-active');
+                                    if (!menuToggleButton.classList.contains('features-open')) {
+                                        toggleFeatureMenu(true); 
+                                    }
+                                }, 850); 
+                            }
+                        }, 600); 
+                    }, 50); 
+                } else {
+                    console.warn("Menu UI wrapper atau tombol toggle tidak ditemukan untuk animasi intro.");
+                }
+            }
+
+
+            function showNotification(message, isImportant = true) {
+                if (!isImportant || !notificationContainer) return; 
+                
+                const notification = document.createElement('div');
+                notification.className = 'notification-message';
+                
+                const messageText = document.createElement('span');
+                messageText.textContent = message;
+                notification.appendChild(messageText);
+
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'notification-close-btn';
+                closeBtn.innerHTML = icons.close; 
+                closeBtn.title = "Tutup notifikasi";
+                closeBtn.onclick = function(event) {
+                    event.stopPropagation(); 
+                    notification.style.animation = 'notification-exit 0.4s cubic-bezier(0.550, 0.055, 0.675, 0.190) forwards';
+                    setTimeout(() => {
+                        if (notification.parentNode) notification.remove();
+                    } , 400);
+                };
+                notification.appendChild(closeBtn);
+                
+                notificationContainer.appendChild(notification); 
+
+
+                setTimeout(() => {
+                    if (notification.parentNode) { 
+                         notification.style.animation = 'notification-exit 0.4s cubic-bezier(0.550, 0.055, 0.675, 0.190) forwards';
+                         setTimeout(() => {
+                            if (notification.parentNode) notification.remove();
+                         }, 400);
+                    }
+                }, 5000); 
+            }
+
+            function toggleFeatureMenu(isInitialAutoOpen = false) {
+                const isOpening = !allFeatureButtons[0].classList.contains('visible'); 
+                
+                if (!isInitialAutoOpen && typeof event !== 'undefined' && event && event.currentTarget === menuToggleButton) { 
+                    playClickSound();
+                }
+                
+                allFeatureButtons.forEach((btn, index) => {
+                    btn.classList.toggle('visible', isOpening);
+                    if (isOpening) { 
+                        setTimeout(() => { 
+                            btn.classList.add('shiny-animate');
+                            setTimeout(() => btn.classList.remove('shiny-animate'), 850); 
+                        }, 50 ); 
+                    }
+                });
+
+                menuToggleButton.classList.toggle('features-open', isOpening);
+                menuBlurBackdrop.classList.toggle('visible', isOpening); 
+                if (!isOpening) { 
+                    if (volumeControlPopup.classList.contains('visible')) toggleVolumePopup();
+                    if (orbitSpeedControlPopup.classList.contains('visible')) toggleOrbitSpeedPopup();
+                    if (zoomControlPopup.classList.contains('visible')) toggleZoomPopup();
+                    if (themeControlPopup.classList.contains('visible')) toggleThemeControlPopup();
+                }
+            }
+            
+            function toggleVolumePopup(showNotifOnClose = false) { 
+                const isOpening = !volumeControlPopup.classList.contains('visible');
+                volumeControlPopup.classList.toggle('visible', isOpening);
+                if (isOpening) {
+                    if (orbitSpeedControlPopup.classList.contains('visible')) toggleOrbitSpeedPopup(false, false);
+                    if (zoomControlPopup.classList.contains('visible')) toggleZoomPopup(false, false);
+                    if (themeControlPopup.classList.contains('visible')) toggleThemeControlPopup(false, false);
+                } else if (showNotifOnClose) {
+                    // showNotification("Pengaturan suara ditutup"); 
+                }
+            }
+
+            function toggleOrbitSpeedPopup(forceOpenState, showNotifOnClose = false) {
+                const currentlyVisible = orbitSpeedControlPopup.classList.contains('visible');
+                const isOpening = typeof forceOpenState === 'boolean' ? forceOpenState : !currentlyVisible;
+                
+                orbitSpeedControlPopup.classList.toggle('visible', isOpening);
+                if (isOpening) {
+                    if (volumeControlPopup.classList.contains('visible')) toggleVolumePopup(false); 
+                    if (zoomControlPopup.classList.contains('visible')) toggleZoomPopup(false, false);
+                    if (themeControlPopup.classList.contains('visible')) toggleThemeControlPopup(false, false);
+                } else if (currentlyVisible && showNotifOnClose && typeof forceOpenState === 'boolean' && !forceOpenState) { 
+                    // showNotification("Pengaturan kecepatan orbit ditutup"); 
+                }
+            }
+
+            function toggleZoomPopup(forceOpenState, showNotifOnClose = false) {
+                const currentlyVisible = zoomControlPopup.classList.contains('visible');
+                const isOpening = typeof forceOpenState === 'boolean' ? forceOpenState : !currentlyVisible;
+                
+                zoomControlPopup.classList.toggle('visible', isOpening);
+                 if (isOpening) {
+                    if (volumeControlPopup.classList.contains('visible')) toggleVolumePopup(false); 
+                    if (orbitSpeedControlPopup.classList.contains('visible')) toggleOrbitSpeedPopup(false, false);
+                    if (themeControlPopup.classList.contains('visible')) toggleThemeControlPopup(false, false);
+                } else if (currentlyVisible && showNotifOnClose && typeof forceOpenState === 'boolean' && !forceOpenState) {
+                     // showNotification("Kontrol zoom ditutup"); 
+                 }
+            }
+            
+            function toggleThemeControlPopup(forceOpenState, showNotifOnClose = false) {
+                const currentlyVisible = themeControlPopup.classList.contains('visible');
+                const isOpening = typeof forceOpenState === 'boolean' ? forceOpenState : !currentlyVisible;
+                
+                themeControlPopup.classList.toggle('visible', isOpening);
+                 if (isOpening) {
+                    if (volumeControlPopup.classList.contains('visible')) toggleVolumePopup(false); 
+                    if (orbitSpeedControlPopup.classList.contains('visible')) toggleOrbitSpeedPopup(false, false);
+                    if (zoomControlPopup.classList.contains('visible')) toggleZoomPopup(false, false);
+                } else if (currentlyVisible && showNotifOnClose && typeof forceOpenState === 'boolean' && !forceOpenState){
+                    // showNotification("Pengaturan tema ditutup"); 
+                }
+            }
+
+
+            function handleOutsideUIsClick(event) {
+                const isMenuOpen = menuToggleButton.classList.contains('features-open');
+                const isVolumePopupOpen = volumeControlPopup.classList.contains('visible');
+                const isOrbitPopupOpen = orbitSpeedControlPopup.classList.contains('visible');
+                const isZoomPopupOpen = zoomControlPopup.classList.contains('visible');
+                const isThemePopupOpen = themeControlPopup.classList.contains('visible');
+                
+                if (event.target === renderer.domElement || document.getElementById('scene-container').contains(event.target)) {
+                    onSceneClick(event); 
+                }
+
+                const clickedOutsideAllBottomUI = menuUiWrapper && !menuUiWrapper.contains(event.target) &&
+                                               !volumeControlPopup.contains(event.target) &&
+                                               !orbitSpeedControlPopup.contains(event.target) &&
+                                               !zoomControlPopup.contains(event.target) &&
+                                               !themeControlPopup.contains(event.target);
+
+                if (isMenuOpen && clickedOutsideAllBottomUI) {
+                    allFeatureButtons.forEach(btn => btn.classList.remove('visible'));
+                    menuToggleButton.classList.remove('features-open');
+                    menuBlurBackdrop.classList.remove('visible');
+                    if (isVolumePopupOpen) toggleVolumePopup(); 
+                    if (isOrbitPopupOpen) toggleOrbitSpeedPopup();
+                    if (isZoomPopupOpen) toggleZoomPopup();
+                    if (isThemePopupOpen) toggleThemeControlPopup();
+                } else {
+                    if (isVolumePopupOpen && volumeControlPopup && !volumeControlPopup.contains(event.target) && 
+                        event.target !== soundFeatureButton && !soundFeatureButton.contains(event.target)) {
+                        toggleVolumePopup();
+                    }
+                    if (isOrbitPopupOpen && orbitSpeedControlPopup && !orbitSpeedControlPopup.contains(event.target) &&
+                        event.target !== orbitSpeedFeatureButton && !orbitSpeedFeatureButton.contains(event.target)) {
+                        toggleOrbitSpeedPopup();
+                    }
+                    if (isZoomPopupOpen && zoomControlPopup && !zoomControlPopup.contains(event.target) &&
+                        event.target !== zoomFeatureButton && !zoomFeatureButton.contains(event.target)) {
+                        toggleZoomPopup();
+                    }
+                    if (isThemePopupOpen && themeControlPopup && !themeControlPopup.contains(event.target) &&
+                        event.target !== themeSettingsFeatureButton && !themeSettingsFeatureButton.contains(event.target)) {
+                        toggleThemeControlPopup();
+                    }
+                }
+            }
+            
+            function initializeAmbientSynth() {
+                if (!audioContextInitialized) {
+                    console.warn("AmbientSynth: AudioContext not ready. Cannot initialize.");
+                    return;
+                }
+                if (ambientSynth) {
+                    console.log("AmbientSynth: Already initialized.");
+                    return;
+                }
+                console.log("AmbientSynth: Initializing (ULTRA-simplified)...");
+                try {
+                    ambientSynth = new Tone.NoiseSynth("brown"); // Coba tanpa opsi envelope dulu
+                    ambientVolumeNode = new Tone.Volume(0).toDestination(); 
+                    ambientSynth.connect(ambientVolumeNode); 
+                    
+                    soundGloballyEnabled = true; 
+                    console.log("AmbientSynth: ULTRA-Simplified NoiseSynth created and connected. State:", ambientSynth.state);
+
+                } catch (e) { 
+                    console.error("Tone.js ULTRA-simplified ambient synth initialization error:", e); 
+                    console.error("Error details:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
+                    soundGloballyEnabled = false;
+                    ambientSynth = null; 
+                }
+            }
+
+            function initializeClickSynth() {
+                if (!audioContextInitialized) {
+                    console.warn("Cannot initialize click synth: AudioContext not ready.");
+                    return;
+                }
+                if (clickSynth) {
+                    console.log("Click synth already initialized.");
+                    return;
+                }
+                console.log("Initializing click synth...");
+                try {
+                    clickSynth = new Tone.MembraneSynth({
+                        pitchDecay: 0.008,
+                        octaves: 2,
+                        envelope: {
+                            attack: 0.001,
+                            decay: 0.2,
+                            sustain: 0.01,
+                            release: 0.1,
+                            attackCurve: "exponential"
+                        }
+                    }).toDestination();
+                    clickSynth.volume.value = -12; 
+                    console.log("Click synth initialized.");
+                } catch (e) {
+                    console.error("Tone.js click synth initialization error:", e);
+                }
+            }
+
+            function playClickSound() {
+                if (buttonClickSoundEnabled && clickSynth && typeof clickSynth.triggerAttackRelease === 'function' && !clickSynth.disposed) {
+                   try {
+                        const now = Tone.now();
+                        clickSynth.triggerAttackRelease("C4", "32n", now + 0.005); 
+                    } catch (e) {
+                        console.warn("Tone.js click sound error:", e.message);
+                    }
+                }
+            }
+
+            function toggleButtonClickSound() {
+                buttonClickSoundEnabled = !buttonClickSoundEnabled;
+                updateButtonSoundToggleIcon();
+                showNotification(buttonClickSoundEnabled ? "Suara tombol diaktifkan" : "Suara tombol dinonaktifkan");
+            }
+
+            function updateButtonSoundToggleIcon() {
+                if (buttonSoundToggleButton) {
+                    buttonSoundToggleButton.innerHTML = buttonClickSoundEnabled ? icons.toggleOn : icons.toggleOff;
+                }
+            }
+
+
+            function applyCurrentVolumeToSynth() {
+                if (!audioContextInitialized || !ambientSynth || !ambientVolumeNode) {
+                    console.warn("ApplyVolume: AudioContext or Ambient synth/volume node not ready.", 
+                                 "Audio Context Initialized:", audioContextInitialized, 
+                                 "Ambient Synth:", ambientSynth ? 'Exists' : 'Null',
+                                 "Ambient Volume Node:", ambientVolumeNode ? 'Exists' : 'Null');
+                    return;
+                }
+                 if (ambientSynth.disposed) {
+                    console.warn("ApplyVolume: Ambient synth is disposed.");
+                    return;
+                 }
+
+                console.log("ApplyVolume: Adjusting volume for ambient synth. Current synth state:", ambientSynth.state);
+                if (isMuted || currentVolumePercent === 0) {
+                    ambientVolumeNode.mute = true;
+                    console.log(`ApplyVolume: Ambient synth Muted. Volume set to -Infinity. State: ${ambientSynth.state}`);
+                } else {
+                    ambientVolumeNode.mute = false;
+                    let dbValue = -Infinity; 
+                    if (currentVolumePercent > 0) {
+                         dbValue = -40 + (currentVolumePercent / 100) * 20; 
+                    }
+                     ambientVolumeNode.volume.linearRampToValueAtTime(dbValue, Tone.now() + 0.1);
+                    console.log(`ApplyVolume: Ambient synth Unmuted. Volume ramped to ${dbValue} dB. State: ${ambientSynth.state}`);
+
+                    if (ambientSynth.state !== "started" && Tone.context.state === 'running') {
+                        try {
+                            console.log("ApplyVolume: Synth was not started, attempting to start now.");
+                            ambientSynth.start();
+                            console.log("ApplyVolume: Ambient synth started. New state:", ambientSynth.state);
+                        } catch (e) {
+                            console.error("ApplyVolume: Error starting ambient synth:", e);
+                        }
+                    } else if (ambientSynth.state !== "started" && Tone.context.state !== 'running') {
+                         console.warn("ApplyVolume: Synth not started and AudioContext not running. Sound will not play.");
+                    }
+                }
+            }
+
+            function handleVolumeSliderChange() {
+                currentVolumePercent = parseInt(volumeSlider.value);
+                isMuted = (currentVolumePercent === 0); 
+                if (!isMuted && currentVolumePercent > 0) { 
+                    lastVolumeBeforeMute = currentVolumePercent; 
+                }
+                
+                applyCurrentVolumeToSynth();
+                updateDynamicVolumeIconAndSynth();
+                
+                clearTimeout(volumeSliderNotificationTimer);
+                volumeSliderNotificationTimer = setTimeout(() => {
+                    showNotification(`Volume diatur ke ${currentVolumePercent}%`);
+                }, notificationDebounceDelay);
+            }
+
+            function updateDynamicVolumeIconAndSynth() {
+                let iconSvg = icons.volumeMute;
+                if (!isMuted && currentVolumePercent > 0) { 
+                    if (currentVolumePercent <= 20) iconSvg = icons.volumeLow;
+                    else if (currentVolumePercent <= 40) iconSvg = icons.volumeMedium;
+                    else if (currentVolumePercent <= 80) iconSvg = icons.volumeHigh; 
+                    else iconSvg = icons.volumeHigh; 
+                }
+                dynamicVolumeIcon.innerHTML = iconSvg;
+                updateSoundFeatureButtonContent(); 
+            }
+            
+            function toggleMuteViaIcon() {
+                if (isMuted || currentVolumePercent === 0) { 
+                    isMuted = false;
+                    currentVolumePercent = (lastVolumeBeforeMute > 0) ? lastVolumeBeforeMute : 50; 
+                    volumeSlider.value = currentVolumePercent;
+                    showNotification("Suara diaktifkan");
+                } else { 
+                    lastVolumeBeforeMute = currentVolumePercent; 
+                    isMuted = true;
+                    currentVolumePercent = 0;
+                    volumeSlider.value = 0;
+                    showNotification("Suara dimatikan");
+                }
+                applyCurrentVolumeToSynth();
+                updateDynamicVolumeIconAndSynth();
+            }
+
+            function handleResetVolume() {
+                currentVolumePercent = 100; 
+                volumeSlider.value = currentVolumePercent;
+                isMuted = false; 
+                lastVolumeBeforeMute = currentVolumePercent;
+                
+                applyCurrentVolumeToSynth();
+                updateDynamicVolumeIconAndSynth();
+            }
+            
+            function updateSoundFeatureButtonContent() {
+                if(soundFeatureButton) {
+                    const text = "Suara";
+                    soundFeatureButton.innerHTML = (!isMuted && currentVolumePercent > 0 ? icons.soundOn : icons.soundOff) + text;
+                }
+            }
+
+            function handleOrbitSpeedSliderChange() {
+                currentOrbitSpeedMultiplier = parseInt(orbitSpeedSlider.value) / 100;
+                updateOrbitSpeedValueDisplay();
+                clearTimeout(orbitSpeedSliderNotificationTimer);
+                orbitSpeedSliderNotificationTimer = setTimeout(() => {
+                    showNotification(`Kecepatan orbit: ${currentOrbitSpeedMultiplier.toFixed(2)}x`);
+                }, notificationDebounceDelay);
+            }
+
+            function updateOrbitSpeedValueDisplay() {
+                orbitSpeedValueDisplay.textContent = currentOrbitSpeedMultiplier.toFixed(2) + "x";
+            }
+
+            function handleRealTimeOrbitSpeed() {
+                currentOrbitSpeedMultiplier = realTimeOrbitSpeedMultiplier;
+                orbitSpeedSlider.value = currentOrbitSpeedMultiplier * 100;
+                updateOrbitSpeedValueDisplay();
+            }
+
+            function handleResetOrbitSpeed() {
+                currentOrbitSpeedMultiplier = defaultOrbitSpeedMultiplier;
+                orbitSpeedSlider.value = currentOrbitSpeedMultiplier * 100;
+                updateOrbitSpeedValueDisplay();
+            }
+            
+            function updateOrbitSpeedFeatureButtonContent() {
+                 if(orbitSpeedFeatureButton) {
+                    orbitSpeedFeatureButton.innerHTML = icons.orbit + "Orbit";
+                }
+            }
+
+            function toggleOrbitLinesVisibility() {
+                orbitLinesEnabled = !orbitLinesEnabled;
+                orbits.forEach(orbit => orbit.visible = orbitLinesEnabled);
+                updateToggleOrbitLinesButtonIcon();
+                showNotification(orbitLinesEnabled ? "Garis orbit diaktifkan" : "Garis orbit dinonaktifkan");
+            }
+
+            function updateToggleOrbitLinesButtonIcon() {
+                if (toggleOrbitLinesButton) {
+                    toggleOrbitLinesButton.innerHTML = orbitLinesEnabled ? icons.toggleOn : icons.toggleOff;
+                }
+            }
+
+
+            function handleZoomSliderChange() {
+                currentFov = parseInt(zoomSlider.value);
+                camera.fov = currentFov;
+                camera.updateProjectionMatrix();
+                updateZoomLevelDisplay();
+                clearTimeout(zoomSliderNotificationTimer);
+                zoomSliderNotificationTimer = setTimeout(() => {
+                    showNotification(`Zoom diatur ke ${currentFov}°`);
+                }, notificationDebounceDelay);
+            }
+
+             function handleMouseWheelZoom(event) {
+                event.preventDefault(); 
+                playClickSound(); 
+
+                const zoomFactor = 0.01; 
+                let delta = 0;
+
+                if (event.deltaY < 0) { 
+                    delta = -5; 
+                } else if (event.deltaY > 0) { 
+                    delta = 5; 
+                }
+                
+                currentFov = Math.max(minFov, Math.min(maxFov, camera.fov + delta));
+                camera.fov = currentFov;
+                camera.updateProjectionMatrix();
+                
+                zoomSlider.value = currentFov;
+                updateZoomLevelDisplay();
+
+                clearTimeout(zoomSliderNotificationTimer);
+                zoomSliderNotificationTimer = setTimeout(() => {
+                    showNotification(`Zoom diatur ke ${currentFov}°`);
+                }, notificationDebounceDelay);
+            }
+
+
+            function updateZoomLevelDisplay() {
+                zoomLevelDisplay.textContent = currentFov + "°";
+            }
+
+            function handleResetZoom() {
+                currentFov = defaultFov;
+                zoomSlider.value = currentFov;
+                camera.fov = currentFov;
+                camera.updateProjectionMatrix();
+                updateZoomLevelDisplay();
+            }
+
+            function updateZoomFeatureButtonContent() {
+                if (zoomFeatureButton) {
+                    zoomFeatureButton.innerHTML = icons.zoom + "Zoom";
+                }
+            }
+
+            function updateThemeSettingsFeatureButtonContent() {
+                if (themeSettingsFeatureButton) {
+                    themeSettingsFeatureButton.innerHTML = icons.themeIcon + "Tema";
+                }
+            }
+            function updateDayNightTogglePopupIcon() {
+                if (dayNightTogglePopup) {
+                    dayNightTogglePopup.innerHTML = isNightMode ? icons.sun : icons.moon;
+                }
+            }
+            function toggleGalaxyBackgrounds() {
+                galaxyBackgroundsEnabled = !galaxyBackgroundsEnabled;
+                galaxySprites.forEach(sprite => sprite.visible = galaxyBackgroundsEnabled);
+                updateGalaxyTogglePopupIcon();
+                showNotification(galaxyBackgroundsEnabled ? "Latar galaksi diaktifkan" : "Latar galaksi dinonaktifkan");
+            }
+            function updateGalaxyTogglePopupIcon() {
+                if (galaxyTogglePopup) {
+                    galaxyTogglePopup.innerHTML = galaxyBackgroundsEnabled ? icons.toggleOn : icons.toggleOff;
+                }
+            }
+            function toggleShootingStars() {
+                shootingStarsEnabled = !shootingStarsEnabled;
+                if (!shootingStarsEnabled && shootingStar) { 
+                    scene.remove(shootingStar);
+                    shootingStar.geometry.dispose(); 
+                    shootingStar.material.dispose(); 
+                    shootingStar = null;
+                }
+                updateShootingStarTogglePopupIcon();
+                showNotification(shootingStarsEnabled ? "Bintang jatuh diaktifkan" : "Bintang jatuh dinonaktifkan");
+            }
+            function updateShootingStarTogglePopupIcon() {
+                 if (shootingStarTogglePopup) {
+                    shootingStarTogglePopup.innerHTML = shootingStarsEnabled ? icons.toggleOn : icons.toggleOff;
+                }
+            }
+            function handleStarDensityChange() {
+                currentStarDensity = parseInt(starDensitySlider.value) / 100;
+                updateStarDensityValueDisplay();
+                createStars(); 
+                 clearTimeout(starDensitySliderNotificationTimer);
+                starDensitySliderNotificationTimer = setTimeout(() => {
+                    showNotification(`Jumlah bintang diatur ke ${currentStarDensity.toFixed(1)}x`);
+                }, notificationDebounceDelay);
+            }
+            function updateStarDensityValueDisplay() {
+                if(starDensityValueDisplay) starDensityValueDisplay.textContent = currentStarDensity.toFixed(1) + "x";
+            }
+            function handleResetStarDensity() {
+                currentStarDensity = defaultStarDensity;
+                starDensitySlider.value = currentStarDensity * 100;
+                updateStarDensityValueDisplay();
+                createStars();
+            }
+
+            function handleShootingStarFrequencyChange() {
+                currentShootingStarFrequency = parseInt(shootingStarFrequencySlider.value) / 100;
+                updateShootingStarFrequencyValueDisplay();
+                 clearTimeout(shootingStarFrequencySliderNotificationTimer);
+                shootingStarFrequencySliderNotificationTimer = setTimeout(() => {
+                    showNotification(`Frekuensi bintang jatuh diatur ke ${currentShootingStarFrequency.toFixed(1)}x`);
+                }, notificationDebounceDelay);
+            }
+            function updateShootingStarFrequencyValueDisplay() {
+                if(shootingStarFrequencyValueDisplay) shootingStarFrequencyValueDisplay.textContent = currentShootingStarFrequency.toFixed(1) + "x";
+            }
+            function handleResetShootingStarFrequency() {
+                currentShootingStarFrequency = defaultShootingStarFrequency;
+                shootingStarFrequencySlider.value = currentShootingStarFrequency * 100;
+                updateShootingStarFrequencyValueDisplay();
+            }
+
+            function toggleFullscreenMode() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        showNotification(`Error saat masuk mode layar penuh: ${err.message}`, true);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            }
+
+            function handleFullscreenChange() {
+                updateFullscreenButtonIcon();
+                const wrapper = document.getElementById('menu-ui-wrapper');
+                if (document.fullscreenElement) {
+                    wrapper.classList.add('fullscreen-active');
+                     showNotification("Mode layar penuh diaktifkan");
+                } else {
+                    wrapper.classList.remove('fullscreen-active');
+                    showNotification("Mode layar penuh dinonaktifkan");
+                }
+            }
+
+            function updateFullscreenButtonIcon() {
+                if (fullscreenToggleButton) {
+                    fullscreenToggleButton.innerHTML = document.fullscreenElement ? icons.fullscreenExit : icons.fullscreenEnter;
+                }
+            }
+
+            function createAxialTiltLine(object, tiltDegrees, objectRadius) { 
+                const tiltRadians = THREE.MathUtils.degToRad(tiltDegrees);
+                const lineLength = objectRadius * 1.6; 
+                
+                const material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
+                const points = [];
+                points.push(new THREE.Vector3(0, -lineLength, 0)); 
+                points.push(new THREE.Vector3(0, lineLength, 0));  
+                
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const line = new THREE.Line(geometry, material);
+                
+                line.rotation.z = tiltRadians; 
+                line.visible = axialTiltLinesEnabled; 
+                object.add(line); 
+                axialTiltLines.push(line);
+            }
+
+            function toggleAxialTiltLines() {
+                axialTiltLinesEnabled = !axialTiltLinesEnabled;
+                axialTiltLines.forEach(line => line.visible = axialTiltLinesEnabled);
+                updateAxialTiltTogglePopupIcon();
+                showNotification(axialTiltLinesEnabled ? "Garis sumbu diaktifkan" : "Garis sumbu dinonaktifkan");
+            }
+
+            function updateAxialTiltTogglePopupIcon() {
+                if (axialTiltTogglePopup) {
+                    axialTiltTogglePopup.innerHTML = axialTiltLinesEnabled ? icons.toggleOn : icons.toggleOff;
+                }
+            }
+
+
+            function updatePopupPausePlayOrbitContent() { 
+                if(popupPausePlayOrbitToggleButton) {
+                    const text = isGloballyPaused ? "Mulai" : "Pause";
+                    popupPausePlayOrbitToggleButton.innerHTML = (isGloballyPaused ? icons.play : icons.pause) + text;
+                }
+            }
+            
+            function createStars() {
+                if (starField) { 
+                    scene.remove(starField);
+                    if (starField.geometry) starField.geometry.dispose(); 
+                    if (starField.material) starField.material.dispose(); 
+                    starField = null; 
+                }
+                const numStars = Math.floor(baseStarCount * currentStarDensity);
+                // console.log("Creating stars with density:", currentStarDensity, "Number of stars:", numStars); 
+
                 const starGeometry = new THREE.BufferGeometry();
-                const starMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.7, transparent: true, opacity: 0.8, sizeAttenuation: true });
+                const starMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.7, transparent: true, opacity: isNightMode ? 0.8 : 0.3, sizeAttenuation: true });
                 const starVertices = [];
-                for (let i = 0; i < 15000; i++) {
+                for (let i = 0; i < numStars; i++) {
                     const x = (Math.random() - 0.5) * 1500; const y = (Math.random() - 0.5) * 1500; const z = (Math.random() - 0.5) * 1500;
                     if (Math.sqrt(x*x + y*y + z*z) > 100) starVertices.push(x, y, z);
                 }
@@ -288,7 +1773,93 @@
                 scene.add(starField);
             }
 
-            function createSolarSystem() { /* Sama seperti sebelumnya, pastikan userData di set dengan benar */
+            function createGalaxySprites() {
+                galaxySprites.forEach(sprite => {
+                    scene.remove(sprite);
+                    if (sprite.material.map) sprite.material.map.dispose();
+                    sprite.material.dispose();
+                });
+                galaxySprites = [];
+
+                const galaxyColors = [0x6082B6, 0x8A2BE2, 0xDA70D6, 0x483D8B, 0xADD8E6, 0x9370DB]; 
+                const numGalaxies = 6; 
+                const baseSpread = 1800; 
+                const depthSpread = 800;
+
+                for (let i = 0; i < numGalaxies; i++) {
+                    const spriteSize = Math.random() * 600 + 300; 
+                    
+                    const canvas = document.createElement('canvas');
+                    const textureSize = 256; 
+                    canvas.width = textureSize;
+                    canvas.height = textureSize;
+                    const context = canvas.getContext('2d');
+                    if (!context) { 
+                        console.error("Failed to get 2D context for galaxy sprite canvas");
+                        continue; 
+                    }
+                    const centerX = textureSize / 2;
+                    const centerY = textureSize / 2;
+
+                    const coreRadius = textureSize * (Math.random() * 0.05 + 0.05); 
+                    const coreGradient = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, coreRadius);
+                    coreGradient.addColorStop(0, `rgba(${Math.floor(Math.random()*55+200)}, ${Math.floor(Math.random()*55+200)}, 255, 0.95)`); 
+                    coreGradient.addColorStop(0.6, `rgba(${galaxyColors[i % galaxyColors.length] >> 16 & 0xFF}, ${galaxyColors[i % galaxyColors.length] >> 8 & 0xFF}, ${galaxyColors[i % galaxyColors.length] & 0xFF}, 0.7)`);
+                    coreGradient.addColorStop(1, `rgba(${galaxyColors[i % galaxyColors.length] >> 16 & 0xFF}, ${galaxyColors[i % galaxyColors.length] >> 8 & 0xFF}, ${galaxyColors[i % galaxyColors.length] & 0xFF}, 0.3)`);
+                    context.fillStyle = coreGradient;
+                    context.beginPath();
+                    context.arc(centerX, centerY, textureSize / 2, 0, Math.PI * 2); 
+                    context.fill();
+
+
+                    const numParticles = 200 + Math.random() * 200; 
+                    const armColor1 = `rgba(${galaxyColors[(i + 1) % galaxyColors.length] >> 16 & 0xFF}, ${galaxyColors[(i + 1) % galaxyColors.length] >> 8 & 0xFF}, ${galaxyColors[(i + 1) % galaxyColors.length] & 0xFF}, ${Math.random() * 0.2 + 0.1})`;
+                    const armColor2 = `rgba(200, 200, 255, ${Math.random() * 0.3 + 0.2})`; 
+
+                    for (let k = 0; k < numParticles; k++) {
+                        const angle = Math.random() * Math.PI * 4; 
+                        const dist = Math.pow(Math.random(), 1.5) * (textureSize / 2 - coreRadius * 1.5) + coreRadius * 1.5; 
+                        
+                        const x = centerX + Math.cos(angle + dist * 0.05) * dist; 
+                        const y = centerY + Math.sin(angle + dist * 0.05) * dist;
+                        const particleSize = Math.random() * 1.5 + 0.5; 
+                        
+                        context.fillStyle = Math.random() < 0.7 ? armColor1 : armColor2;
+                        context.beginPath();
+                        context.arc(x, y, particleSize, 0, Math.PI * 2);
+                        context.fill();
+                    }
+                    
+                    const texture = new THREE.CanvasTexture(canvas);
+                    const material = new THREE.SpriteMaterial({ 
+                        map: texture, 
+                        transparent: true, 
+                        opacity: 0.6 + Math.random() * 0.2, 
+                        blending: THREE.AdditiveBlending,
+                        depthWrite: false, 
+                        depthTest: false
+                    });
+                    const sprite = new THREE.Sprite(material);
+                    
+                    const r = baseSpread * (1 + Math.random()); 
+                    const theta = Math.random() * Math.PI * 2; 
+                    const phi = (Math.random() - 0.5) * Math.PI * 0.3; 
+
+                    sprite.position.set(
+                        r * Math.cos(theta) * Math.cos(phi),
+                        r * Math.sin(phi), 
+                        -depthSpread - r * Math.sin(theta) * Math.cos(phi) - Math.random() * 500 
+                    );
+
+                    sprite.scale.set(spriteSize, spriteSize, 1);
+                    sprite.visible = galaxyBackgroundsEnabled;
+                    scene.add(sprite);
+                    galaxySprites.push(sprite);
+                }
+            }
+
+
+            function createSolarSystem() {
                 for (const key in planetData) {
                     const data = planetData[key];
                     const geometry = new THREE.SphereGeometry(data.size, 64, 64);
@@ -297,11 +1868,13 @@
                         material = new THREE.MeshBasicMaterial({ color: data.color, map: createSunTexture() });
                         sunLight.position.set(0,0,0);
                     } else {
-                        material = new THREE.MeshPhongMaterial({ color: data.color, shininess: 15, specular: 0x222222 }); // Slightly more shine
+                        material = new THREE.MeshPhongMaterial({ color: data.color, shininess: 15, specular: 0x222222 });
                     }
                     const planetMesh = new THREE.Mesh(geometry, material);
                     planetMesh.name = data.name;
-                    planetMesh.userData = data; // Crucial for click interaction
+                    planetMesh.userData = data;
+                    planetMesh.userData.isHovered = false; 
+                    createAxialTiltLine(planetMesh, data.axialTilt, data.size); 
 
                     if (key !== 'sun') {
                         const planetOrbitGroup = new THREE.Object3D();
@@ -311,9 +1884,10 @@
                         planets.push({ mesh: planetMesh, group: planetOrbitGroup, speed: data.speed, distance: data.distance });
 
                         const orbitGeometry = new THREE.RingGeometry(data.distance - 0.1, data.distance + 0.1, 128);
-                        const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
+                        const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0xAAAAAA, side: THREE.DoubleSide, transparent: true, opacity: 0.5 }); 
                         const orbitMesh = new THREE.Mesh(orbitGeometry, orbitMaterial);
                         orbitMesh.rotation.x = Math.PI / 2;
+                        orbitMesh.visible = orbitLinesEnabled; 
                         scene.add(orbitMesh);
                         orbits.push(orbitMesh);
 
@@ -329,6 +1903,9 @@
                             const moonMaterial = new THREE.MeshPhongMaterial({ color: moonData.color, shininess: 5 });
                             const moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
                             moonMesh.name = moonData.name; moonMesh.userData = moonData;
+                            moonMesh.userData.isHovered = false; 
+                            createAxialTiltLine(moonMesh, moonData.axialTilt, moonData.size); 
+
                             const moonOrbitGroup = new THREE.Object3D();
                             moonMesh.position.x = moonData.distance; moonOrbitGroup.add(moonMesh);
                             planetMesh.add(moonOrbitGroup);
@@ -336,12 +1913,11 @@
                         }
                     } else {
                         scene.add(planetMesh);
-                        planets.push({ mesh: planetMesh, group: planetMesh, speed: 0, distance: 0 });
+                        planets.push({ mesh: planetMesh, group: planetMesh, speed: data.speed, distance: 0 }); 
                     }
                 }
             }
-            
-            function createSunTexture() { /* Sama seperti sebelumnya */
+            function createSunTexture() {
                 const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
                 const context = canvas.getContext('2d');
                 const gradient = context.createRadialGradient(128, 128, 20, 128, 128, 128);
@@ -356,103 +1932,115 @@
                 }
                 return new THREE.CanvasTexture(canvas);
             }
-
-            function onWindowResize() { /* Sama seperti sebelumnya */
+            function onWindowResize() { 
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
             }
-
-            function onSceneMouseMove(event) {
+            function onSceneMouseMove(event) { 
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-                
-                // Update cursor based on hover
+
+                parallaxMouseX = (event.clientX / window.innerWidth - 0.5) * 2; 
+                parallaxMouseY = (event.clientY / window.innerHeight - 0.5) * 2; 
+
                 raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(planets.map(p => p.mesh), true); // Check all descendants
+                const intersects = raycaster.intersectObjects(planets.map(p => p.mesh), true);
+
+                let currentIntersected = null;
                 if (intersects.length > 0) {
+                    currentIntersected = intersects[0].object;
                     document.getElementById('scene-container').style.cursor = 'pointer';
                 } else {
                     document.getElementById('scene-container').style.cursor = 'grab';
                 }
+
+                // Update isHovered status
+                planets.forEach(p => {
+                    if (p.mesh.userData) { // Pastikan userData ada
+                        p.mesh.userData.isHovered = (p.mesh === currentIntersected);
+                    }
+                });
+                hoveredObject = currentIntersected; // Update hoveredObject global
+
+                // Tooltip logic
+                if (hoveredObject && hoveredObject.userData && hoveredObject.userData.name) {
+                    if (tooltipLabelElement) {
+                        tooltipLabelElement.textContent = hoveredObject.userData.name;
+                        tooltipLabelElement.style.left = `${event.clientX + 15}px`;
+                        tooltipLabelElement.style.top = `${event.clientY + 15}px`;
+                        tooltipLabelElement.classList.add('visible');
+                        tooltipLabelElement.classList.remove('hidden');
+                    }
+                } else {
+                    if (tooltipLabelElement) {
+                        tooltipLabelElement.classList.remove('visible');
+                        tooltipLabelElement.classList.add('hidden');
+                    }
+                }
             }
-
-            function onSceneClick(event) {
-                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(planets.map(p => p.mesh), true); // Check all descendants
-
+            function onSceneClick(event) { 
+                if (!(event.target === renderer.domElement || document.getElementById('scene-container').contains(event.target))) {
+                    return;
+                }
+                raycaster.setFromCamera(mouse, camera); 
+                const intersects = raycaster.intersectObjects(planets.map(p => p.mesh), true);
                 if (intersects.length > 0) {
                     const newClickedObject = intersects[0].object;
-                    if (clickedObject !== newClickedObject) {
-                        clickedObject = newClickedObject;
-                        updateInfoPanel(clickedObject.userData);
-                        isPausedByPlanetInteraction = true;
-                    } else { // Clicking the same planet again, toggle panel
+                    if (clickedObject !== newClickedObject) { 
+                        if (newClickedObject.userData){
+                             updateInfoPanel(newClickedObject.userData);
+                             isPausedByPlanetInteraction = true;
+                             // showNotification(`Info ${newClickedObject.name} ditampilkan`); 
+                        }
+                    } else if (newClickedObject.userData) { 
                         if (document.getElementById('info-panel').classList.contains('visible')) {
                             closeInfoPanel();
+                            // showNotification(`Info ${newClickedObject.name} ditutup`); 
                         } else {
-                            updateInfoPanel(clickedObject.userData); // Re-show if it was hidden by other means
+                            updateInfoPanel(newClickedObject.userData);
                             isPausedByPlanetInteraction = true;
+                            // showNotification(`Info ${newClickedObject.name} ditampilkan`); 
                         }
                     }
-                } else { // Clicked on empty space
-                    if (clickedObject) { // If a panel was open, close it
-                        closeInfoPanel();
+                } else { 
+                    if (document.getElementById('info-panel').classList.contains('visible')) { 
+                         if (event.target === renderer.domElement || document.getElementById('scene-container').contains(event.target)) {
+                            closeInfoPanel();
+                            // showNotification("Panel info ditutup"); 
+                         }
                     }
                 }
             }
-            
-            function closeInfoPanel() {
+            function closeInfoPanel() { 
                 document.getElementById('info-panel').classList.remove('visible');
-                isPausedByPlanetInteraction = false;
-                // clickedObject = null; // Keep clickedObject to allow re-opening by clicking same planet
+                isPausedByPlanetInteraction = false; 
             }
-
-            function toggleGlobalPause() {
+            function toggleGlobalPause() { 
                 isGloballyPaused = !isGloballyPaused;
-                document.getElementById('pause-play-toggle').innerHTML = isGloballyPaused ? icons.play : icons.pause;
-                document.getElementById('pause-play-toggle').title = isGloballyPaused ? "Mulai Animasi" : "Pause Animasi";
+                updatePopupPausePlayOrbitContent(); 
+                showNotification(isGloballyPaused ? "Animasi dijeda" : "Animasi dilanjutkan");
             }
-
-            function toggleSound() {
-                if (!ambientSynth) {
-                     try {
-                        Tone.start();
-                        ambientSynth = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 8, decay: 0.2, sustain: 0.8, release: 8 }}).toDestination();
-                        ambientSynth.volume.value = -35;
-                    } catch (e) { console.error("Tone.js error:", e); return; }
-                }
-                soundEnabled = !soundEnabled;
-                if (soundEnabled) ambientSynth.triggerAttack(); else ambientSynth.triggerRelease();
-                document.getElementById('sound-toggle').innerHTML = soundEnabled ? icons.soundOn : icons.soundOff;
-                document.getElementById('sound-toggle').title = soundEnabled ? "Matikan Suara" : "Nyalakan Suara";
-            }
-
-            function toggleTheme() {
+            function toggleTheme() { 
                 isNightMode = !isNightMode;
                 updateThemeVisuals();
+                showNotification(isNightMode ? "Mode Malam diaktifkan" : "Mode Siang diaktifkan");
             }
-
-            function updateThemeVisuals() {
+            function updateThemeVisuals() { 
                 document.body.classList.toggle('light-mode', !isNightMode);
-                document.getElementById('theme-toggle').innerHTML = isNightMode ? icons.sun : icons.moon;
-                document.getElementById('theme-toggle').title = isNightMode ? "Mode Siang" : "Mode Malam";
+                updateDayNightTogglePopupIcon(); 
 
                 if (isNightMode) {
                     ambientLight.intensity = 1.5; sunLight.intensity = 1.5;
                     if (starField) starField.material.opacity = 0.8;
-                    orbits.forEach(o => o.material.opacity = 0.3);
-                } else {
-                    ambientLight.intensity = 3.0; sunLight.intensity = 2.0;
-                    if (starField) starField.material.opacity = 0.3;
-                    orbits.forEach(o => o.material.opacity = 0.15);
+                    orbits.forEach(o => o.material.opacity = orbitLinesEnabled ? 0.5 : 0); // Perbarui opasitas orbit
+                } else { 
+                    ambientLight.intensity = 3.0; sunLight.intensity = 2.0;  
+                    if (starField) starField.material.opacity = 0.3; 
+                    orbits.forEach(o => o.material.opacity = orbitLinesEnabled ? 0.2 : 0); // Perbarui opasitas orbit
                 }
             }
-            
-            function updateInfoPanel(data) {
+            function updateInfoPanel(data) { 
                 const panel = document.getElementById('info-panel');
                 if (data) {
                     document.getElementById('planet-name').textContent = data.name || "N/A";
@@ -467,40 +2055,120 @@
                     document.getElementById('planet-atmosphere').textContent = data.atmosphere || "N/A";
                     document.getElementById('planet-discovery').textContent = data.discovery || "N/A";
                     document.getElementById('planet-fact').textContent = data.fact || "Tidak ada fakta unik.";
-                    panel.classList.add('visible');
-                } else { // Should not happen if logic is correct, but as a fallback
-                    panel.classList.remove('visible');
+                    panel.classList.add('visible'); 
+                } else {
+                    panel.classList.remove('visible'); 
                 }
             }
-
-            function animate() {
-                requestAnimationFrame(animate);
-                const time = Date.now() * 0.0001;
-
-                // Animasi planet-planet dan rotasi aksialnya
-                if (!isPausedByPlanetInteraction && !isGloballyPaused) {
+            
+            function animate() { 
+                requestAnimationFrame(animate); 
+                
+                if (!isPausedByPlanetInteraction && !isGloballyPaused) { 
                     planets.forEach(p => {
-                        if (p.group && p.speed > 0) { 
-                            if (p.isMoon && p.parentPlanet) p.group.rotation.y += p.speed * 5; 
-                            else p.group.rotation.y += p.speed / 2; 
+                        const data = p.mesh.userData;
+                        let orbitSpeedFactor = 1;
+                        let rotationSpeedFactor = 1;
+
+                        if (data && data.isHovered) { 
+                            orbitSpeedFactor = 0.05; 
+                            rotationSpeedFactor = 0.05; 
                         }
-                        p.mesh.rotation.y += 0.005; 
+
+                        const baseSpeed = (typeof data.speed === 'number') ? data.speed : 0;
+                        const effectiveOrbitSpeed = baseSpeed * currentOrbitSpeedMultiplier * orbitSpeedFactor;
+                        const effectiveRotationSpeed = 0.005 * rotationSpeedFactor;
+
+                        if (p.group && baseSpeed > 0) { 
+                            if (p.isMoon) { 
+                                 // Orbit bulan terhadap planetnya tidak dipengaruhi hover planet induk, hanya hover bulan itu sendiri
+                                p.group.rotation.y += baseSpeed * currentOrbitSpeedMultiplier * (data.isHovered ? 0.05 : 1) * 5;
+                            } else if (p.mesh.name !== "Matahari") { 
+                                p.group.rotation.y += effectiveOrbitSpeed / 2;
+                            }
+                        }
+                        p.mesh.rotation.y += effectiveRotationSpeed; 
                     });
                 }
 
-                // Efek kelap-kelip bintang (selalu berjalan)
                 if (starField) {
-                    starField.material.opacity = isNightMode ? (0.6 + Math.sin(Date.now() * 0.0005) * 0.2) : (0.2 + Math.sin(Date.now() * 0.0005) * 0.1) ;
+                    starField.material.opacity = isNightMode ? 
+                        (0.6 + Math.sin(Date.now() * 0.0005) * 0.2) : 
+                        (0.2 + Math.sin(Date.now() * 0.0005) * 0.1); 
+                }
+
+                if (shootingStarsEnabled) {
+                    if (!shootingStar && shootingStarCooldown <= 0) {
+                        const baseChance = 0.005; 
+                        if (Math.random() < (baseChance * currentShootingStarFrequency) ) { 
+                            createShootingStarInstance();
+                            shootingStarCooldown = (SHOOTING_STAR_BASE_COOLDOWN_MAX / currentShootingStarFrequency) + (Math.random() * 100 / currentShootingStarFrequency) ; 
+                        }
+                    } else if (shootingStar) {
+                        shootingStar.position.x += shootingStar.userData.velocityX;
+                        shootingStar.position.y += shootingStar.userData.velocityY;
+                        shootingStar.material.opacity -= 0.01; 
+
+                        if (shootingStar.material.opacity <= 0) {
+                            scene.remove(shootingStar);
+                            shootingStar.geometry.dispose();
+                            shootingStar.material.dispose();
+                            shootingStar = null;
+                        }
+                    }
+                    if (shootingStarCooldown > 0) shootingStarCooldown--;
                 }
                 
-                // Kamera berputar perlahan (selalu berjalan)
-                camera.position.x = Math.sin(time * 0.07) * 160; // Slightly slower and wider camera orbit
-                camera.position.z = Math.cos(time * 0.07) * 160;
-                camera.position.y = 70 + Math.sin(time * 0.03) * 25; 
-                camera.lookAt(scene.position);
+                const cameraTime = Date.now() * 0.0001;
+                let baseCameraX = Math.sin(cameraTime * 0.07) * 160;
+                let baseCameraZ = Math.cos(cameraTime * 0.07) * 160;
+                let baseCameraY = 70 + Math.sin(cameraTime * 0.03) * 25;
 
-                renderer.render(scene, camera);
+                camera.position.x = baseCameraX + parallaxMouseX * parallaxIntensity;
+                camera.position.y = baseCameraY - parallaxMouseY * parallaxIntensity; 
+                camera.position.z = baseCameraZ; 
+
+                camera.lookAt(scene.position); 
+
+                renderer.render(scene, camera); 
             }
+
+            function createShootingStarInstance() {
+                const material = new THREE.LineBasicMaterial({ color: 0xFFFFFF, linewidth: 2.5, transparent: true, opacity: 1 });
+                const points = [];
+                const length = Math.random() * 25 + 15; 
+                points.push(new THREE.Vector3(0, 0, 0));
+                points.push(new THREE.Vector3(length, length / 3, 0)); 
+                
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                shootingStar = new THREE.Line(geometry, material);
+
+                const edge = Math.floor(Math.random() * 4);
+                const startX = (Math.random() - 0.5) * window.innerWidth * 1.5;
+                const startY = (Math.random() - 0.5) * window.innerHeight * 1.5;
+                const speedFactor = 2 + Math.random() * 3; 
+
+                if (edge === 0) { 
+                    shootingStar.position.set(-window.innerWidth / 1.5, startY, -500 - Math.random() * 500);
+                    shootingStar.userData.velocityX = speedFactor * (Math.random() * 2 + 4); 
+                    shootingStar.userData.velocityY = speedFactor * (Math.random() - 0.5) * 2;
+                } else if (edge === 1) { 
+                    shootingStar.position.set(window.innerWidth / 1.5, startY, -500 - Math.random() * 500);
+                    shootingStar.userData.velocityX = -speedFactor * (Math.random() * 2 + 4); 
+                    shootingStar.userData.velocityY = speedFactor * (Math.random() - 0.5) * 2;
+                } else if (edge === 2) { 
+                     shootingStar.position.set(startX, window.innerHeight / 1.5, -500 - Math.random() * 500);
+                    shootingStar.userData.velocityX = speedFactor * (Math.random() - 0.5) * 2;
+                    shootingStar.userData.velocityY = -speedFactor * (Math.random() * 2 + 4); 
+                } else { 
+                    shootingStar.position.set(startX, -window.innerHeight / 1.5, -500 - Math.random() * 500);
+                    shootingStar.userData.velocityX = speedFactor * (Math.random() - 0.5) * 2;
+                    shootingStar.userData.velocityY = speedFactor * (Math.random() * 2 + 4); 
+                }
+                shootingStar.rotation.z = Math.atan2(shootingStar.userData.velocityY, shootingStar.userData.velocityX);
+                scene.add(shootingStar);
+            }
+
 
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
